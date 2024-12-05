@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent-of-code/2024/util"
 	"fmt"
 	"log"
 	"math"
@@ -67,8 +68,8 @@ func main() {
 part1Outer:
 	for _, update := range updates {
 		for _, rule := range rules {
-			firstPageIndex := indexOf(update, rule[0])
-			secondPageIndex := indexOf(update, rule[1])
+			firstPageIndex := util.IndexOf(update, rule[0])
+			secondPageIndex := util.IndexOf(update, rule[1])
 
 			if firstPageIndex == -1 || secondPageIndex == -1 {
 				continue
@@ -100,15 +101,15 @@ part1Outer:
 			fmt.Printf("\nRestarting, current %v\n", fixedUpdate)
 
 			for _, rule := range rules {
-				firstPageIndex := indexOf(fixedUpdate, rule[0])
-				secondPageIndex := indexOf(fixedUpdate, rule[1])
+				firstPageIndex := util.IndexOf(fixedUpdate, rule[0])
+				secondPageIndex := util.IndexOf(fixedUpdate, rule[1])
 
 				if firstPageIndex == -1 || secondPageIndex == -1 {
 					continue
 				}
 
 				if secondPageIndex < firstPageIndex {
-					fixedUpdate = moveElement(fixedUpdate, firstPageIndex, secondPageIndex)
+					fixedUpdate = util.MoveElement(fixedUpdate, firstPageIndex, secondPageIndex)
 
 					fmt.Printf("Moving %d before %d, result %v\n", rule[1], rule[0], fixedUpdate)
 
@@ -127,31 +128,4 @@ part1Outer:
 	}
 
 	fmt.Printf("Part 1: %d\n", fixedUpdatesMiddlePagesSum)
-}
-
-func indexOf(haystack []int, needle int) int {
-	for i, v := range haystack {
-		if v == needle {
-			return i
-		}
-	}
-
-	return -1
-}
-
-func moveElement(slice []int, from, to int) []int {
-	if from < 0 || from >= len(slice) || to < 0 || to >= len(slice) {
-		log.Fatal("Out of range error")
-	}
-
-	element := slice[from]
-	if from < to {
-		copy(slice[from:], slice[from+1:to+1])
-	} else {
-		copy(slice[to+1:], slice[to:from])
-	}
-
-	slice[to] = element
-
-	return slice
 }

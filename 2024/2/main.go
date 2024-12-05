@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advent-of-code/2024/util"
 	"bufio"
 	"fmt"
 	"log"
@@ -74,7 +75,7 @@ func isReportValid(numbers []int) bool {
 
 func isReportValidWithOneBadNumberAllowed(numbers []int) bool {
 	for i := range numbers {
-		numbersWithoutOne := RemoveIndex(numbers, i)
+		numbersWithoutOne := util.RemoveIndex(numbers, i)
 
 		if isReportValid(numbersWithoutOne) {
 			return true
@@ -90,10 +91,4 @@ func isValidInSafeReport(prev int, curr int, isIncreasing bool) bool {
 	} else {
 		return prev-curr >= 1 && prev-curr <= 3
 	}
-}
-
-func RemoveIndex(s []int, index int) []int {
-	ret := make([]int, 0)
-	ret = append(ret, s[:index]...)
-	return append(ret, s[index+1:]...)
 }
