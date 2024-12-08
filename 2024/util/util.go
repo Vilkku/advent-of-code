@@ -2,13 +2,13 @@ package util
 
 import "log"
 
-func RemoveIndex(s []int, index int) []int {
-	ret := make([]int, 0)
+func RemoveIndex[T comparable](s []T, index int) []T {
+	ret := make([]T, 0)
 	ret = append(ret, s[:index]...)
 	return append(ret, s[index+1:]...)
 }
 
-func IndexOf(haystack []int, needle int) int {
+func IndexOf[T comparable](haystack []T, needle T) int {
 	for i, v := range haystack {
 		if v == needle {
 			return i
@@ -18,7 +18,7 @@ func IndexOf(haystack []int, needle int) int {
 	return -1
 }
 
-func MoveElement(slice []int, from, to int) []int {
+func MoveElement[T comparable](slice []T, from, to int) []T {
 	if from < 0 || from >= len(slice) || to < 0 || to >= len(slice) {
 		log.Fatal("Out of range error")
 	}
