@@ -22,8 +22,6 @@ const getPart2Answer = (initialMemory: number[]) => {
 
       const part2Memory = run(part2InitialMemory);
 
-      console.log(noun, verb, part2Memory[0]);
-
       if (part2Memory[0] === 19690720) {
         return 100 * noun + verb;
       }

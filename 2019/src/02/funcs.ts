@@ -1,16 +1,20 @@
-export enum Opcode {
-  Add = 1,
-  Multiply = 2,
+interface Opcode {
+  type: "add" | "multiply";
+  opcode: number;
+  parameterCount: number;
+}
+
+interface Instruction {
+  opcode: Opcode;
+  parameters: number[];
+}
+
+interface InstructionResult {
+  address: number;
+  value: number;
 }
 
 const OPCODE_HALT = 99;
-
-type Instruction = [Opcode, ...number[]];
-
-const parameterAmounts: Record<Opcode, number> = {
-  [Opcode.Add]: 3,
-  [Opcode.Multiply]: 3,
-};
 
 export const run = (initialMemory: number[]): number[] => {
   let memory = [...initialMemory];
@@ -19,51 +23,67 @@ export const run = (initialMemory: number[]): number[] => {
   while (memory[pointer] !== OPCODE_HALT) {
     const opcode = parseOpcode(memory[pointer]);
 
-    const paramCount = parameterAmounts[opcode];
-    if (pointer + paramCount >= memory.length) {
+    if (pointer + opcode.parameterCount >= memory.length) {
       throw new Error(
         "Insufficient parameters in memory for the current opcode",
       );
     }
 
-    const instruction: Instruction = [
+    const instruction: Instruction = {
       opcode,
-      ...memory.slice(pointer + 1, pointer + 1 + paramCount),
-    ];
+      parameters: memory.slice(
+        pointer + 1,
+        pointer + 1 + opcode.parameterCount,
+      ),
+    };
 
-    const [address, value] = executeInstruction(instruction, memory);
+    const { address, value } = getInstructionResult(instruction, memory);
     memory[address] = value;
 
-    pointer += paramCount + 1;
+    pointer += opcode.parameterCount + 1;
   }
 
   return memory;
 };
 
-const parseOpcode = (value: number): Opcode => {
-  if (!Object.values(Opcode).includes(value)) {
-    throw new Error("Invalid opcode");
+export const parseOpcode = (value: number): Opcode => {
+  switch (value) {
+    case 1:
+      return {
+        type: "add",
+        opcode: 1,
+        parameterCount: 3,
+      };
+    case 2:
+      return {
+        type: "multiply",
+        opcode: 2,
+        parameterCount: 3,
+      };
+    default:
+      throw new Error("Invalid opcode");
   }
-
-  return value as Opcode;
 };
 
-export const executeInstruction = (
-  [opcode, ...parameters]: Instruction,
+export const getInstructionResult = (
+  { opcode, parameters }: Instruction,
   memory: number[],
-): [number, number] => {
-  if (parameterAmounts[opcode] !== parameters.length) {
+): InstructionResult => {
+  if (opcode.parameterCount !== parameters.length) {
     throw new Error("Invalid parameter amount");
   }
 
-  switch (opcode) {
-    case Opcode.Add:
-      return [parameters[2], add(memory[parameters[0]], memory[parameters[1]])];
-    case Opcode.Multiply:
-      return [
-        parameters[2],
-        multiply(memory[parameters[0]], memory[parameters[1]]),
-      ];
+  switch (opcode.type) {
+    case "add":
+      return {
+        address: parameters[2],
+        value: add(memory[parameters[0]], memory[parameters[1]]),
+      };
+    case "multiply":
+      return {
+        address: parameters[2],
+        value: multiply(memory[parameters[0]], memory[parameters[1]]),
+      };
   }
 };
 

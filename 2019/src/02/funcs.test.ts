@@ -1,27 +1,30 @@
 import { expect, test } from "bun:test";
-import { executeInstruction, run } from "./funcs.ts";
+import { getInstructionResult, parseOpcode, run } from "./funcs.ts";
+
+const addOpcode = parseOpcode(1);
+const multiplyOpcode = parseOpcode(2);
 
 test("execute", () => {
   expect(
-    executeInstruction(
-      [1, 9, 10, 3],
+    getInstructionResult(
+      { opcode: addOpcode, parameters: [9, 10, 3] },
       [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50],
     ),
-  ).toMatchObject([3, 70]);
+  ).toMatchObject({ address: 3, value: 70 });
 
   expect(
-    executeInstruction(
-      [2, 3, 11, 0],
+    getInstructionResult(
+      { opcode: multiplyOpcode, parameters: [3, 11, 0] },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
     ),
-  ).toMatchObject([0, 3500]);
+  ).toMatchObject({ address: 0, value: 3500 });
 
   expect(
-    executeInstruction(
-      [2, 3, 11, 0],
+    getInstructionResult(
+      { opcode: multiplyOpcode, parameters: [3, 11, 0] },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
     ),
-  ).toMatchObject([0, 3500]);
+  ).toMatchObject({ address: 0, value: 3500 });
 });
 
 test("run", () => {
