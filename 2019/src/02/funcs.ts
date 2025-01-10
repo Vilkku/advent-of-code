@@ -1,13 +1,14 @@
-interface Opcode {
-  type: "add" | "multiply";
-  opcode: number;
-  parameterCount: number;
+interface AddInstruction {
+  type: "add";
+  parameters: [number, number, number];
 }
 
-interface Instruction {
-  opcode: Opcode;
-  parameters: number[];
+interface MultiplyInstruction {
+  type: "multiply";
+  parameters: [number, number, number];
 }
+
+type Instruction = AddInstruction | MultiplyInstruction;
 
 interface InstructionResult {
   address: number;
@@ -21,59 +22,75 @@ export const run = (initialMemory: number[]): number[] => {
   let pointer = 0;
 
   while (memory[pointer] !== OPCODE_HALT) {
-    const opcode = parseOpcode(memory[pointer]);
-
-    if (pointer + opcode.parameterCount >= memory.length) {
-      throw new Error(
-        "Insufficient parameters in memory for the current opcode",
-      );
-    }
-
-    const instruction: Instruction = {
-      opcode,
-      parameters: memory.slice(
-        pointer + 1,
-        pointer + 1 + opcode.parameterCount,
-      ),
-    };
-
+    const instruction = parseInstruction(pointer, memory);
     const { address, value } = getInstructionResult(instruction, memory);
     memory[address] = value;
 
-    pointer += opcode.parameterCount + 1;
+    pointer += instruction.parameters.length + 1;
   }
 
   return memory;
 };
 
-export const parseOpcode = (value: number): Opcode => {
-  switch (value) {
+export const parseInstruction = (
+  pointer: number,
+  memory: number[],
+): Instruction => {
+  switch (memory[pointer]) {
     case 1:
-      return {
-        type: "add",
-        opcode: 1,
-        parameterCount: 3,
-      };
+      return parseAddInstruction(pointer, memory);
     case 2:
-      return {
-        type: "multiply",
-        opcode: 2,
-        parameterCount: 3,
-      };
+      return parseMultiplyInstruction(pointer, memory);
     default:
-      throw new Error("Invalid opcode");
+      throw new Error("Unknown opcode");
   }
 };
 
-export const getInstructionResult = (
-  { opcode, parameters }: Instruction,
+const parseAddInstruction = (
+  pointer: number,
   memory: number[],
-): InstructionResult => {
-  if (opcode.parameterCount !== parameters.length) {
-    throw new Error("Invalid parameter amount");
+): AddInstruction => {
+  const PARAMETER_COUNT = 3;
+
+  if (pointer + PARAMETER_COUNT >= memory.length) {
+    throw new Error("Insufficient parameters in memory for the add opcode");
   }
 
-  switch (opcode.type) {
+  return {
+    type: "add",
+    parameters: memory.slice(pointer + 1, pointer + 1 + PARAMETER_COUNT) as [
+      number,
+      number,
+      number,
+    ],
+  };
+};
+
+const parseMultiplyInstruction = (
+  pointer: number,
+  memory: number[],
+): MultiplyInstruction => {
+  const PARAMETER_COUNT = 3;
+
+  if (pointer + PARAMETER_COUNT >= memory.length) {
+    throw new Error("Insufficient parameters in memory for the add opcode");
+  }
+
+  return {
+    type: "multiply",
+    parameters: memory.slice(pointer + 1, pointer + 1 + PARAMETER_COUNT) as [
+      number,
+      number,
+      number,
+    ],
+  };
+};
+
+export const getInstructionResult = (
+  { type, parameters }: Instruction,
+  memory: number[],
+): InstructionResult => {
+  switch (type) {
     case "add":
       return {
         address: parameters[2],

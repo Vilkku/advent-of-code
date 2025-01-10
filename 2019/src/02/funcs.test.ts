@@ -1,27 +1,41 @@
 import { expect, test } from "bun:test";
-import { getInstructionResult, parseOpcode, run } from "./funcs.ts";
+import { getInstructionResult, parseInstruction, run } from "./funcs.ts";
 
-const addOpcode = parseOpcode(1);
-const multiplyOpcode = parseOpcode(2);
+test("parseInstruction", () => {
+  const program = [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50];
 
-test("execute", () => {
+  expect(parseInstruction(0, program)).toMatchObject({
+    type: "add",
+    parameters: [9, 10, 3],
+  });
+
+  expect(parseInstruction(4, program)).toMatchObject({
+    type: "multiply",
+    parameters: [3, 11, 0],
+  });
+
+  expect(() => parseInstruction(2, program)).toThrow();
+  expect(() => parseInstruction(0, [1, 9, 10])).toThrow();
+});
+
+test("getInstructionResult", () => {
   expect(
     getInstructionResult(
-      { opcode: addOpcode, parameters: [9, 10, 3] },
+      { type: "add", parameters: [9, 10, 3] },
       [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50],
     ),
   ).toMatchObject({ address: 3, value: 70 });
 
   expect(
     getInstructionResult(
-      { opcode: multiplyOpcode, parameters: [3, 11, 0] },
+      { type: "multiply", parameters: [3, 11, 0] },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
     ),
   ).toMatchObject({ address: 0, value: 3500 });
 
   expect(
     getInstructionResult(
-      { opcode: multiplyOpcode, parameters: [3, 11, 0] },
+      { type: "multiply", parameters: [3, 11, 0] },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
     ),
   ).toMatchObject({ address: 0, value: 3500 });
