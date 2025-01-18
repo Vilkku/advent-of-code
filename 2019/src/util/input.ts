@@ -11,7 +11,16 @@ export const getInput = async (
 };
 
 export const inputToRows = (input: string): string[] => input.split("\n");
+export const inputToStrings = (input: string): string[] => input.split(",");
 export const inputToNumbers = (input: string): number[] =>
   input.split(",").map(toInt);
 
-export const toInt = (row: string): number => parseInt(row, 10);
+export const toInt = (input: string): number => {
+  const num = parseInt(input, 10);
+
+  if (isNaN(num)) {
+    throw new Error(`${input} cannot be parsed with parseInt()`);
+  }
+
+  return num;
+};
