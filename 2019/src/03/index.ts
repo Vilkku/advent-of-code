@@ -1,3 +1,4 @@
+import { benchmark } from "../util/benchmark.ts";
 import { getInput, inputToRows } from "../util/input.ts";
 import {
   findIntersections,
@@ -11,8 +12,17 @@ const paths = inputToRows(await getInput(import.meta.dir, "input.txt"))
   .map(inputRowToInstructions)
   .map(instructionsToPath);
 
-const intersections = findIntersections(paths[0], paths[1]);
+benchmark(() => {
+  const intersections = benchmark(
+    () => findIntersections(paths[0], paths[1]),
+    "findIntersections",
+  );
 
-console.log("Part 1", getClosestDistance(intersections));
+  benchmark(() => {
+    console.log("Part 1", getClosestDistance(intersections));
+  }, "getFewestSteps");
 
-console.log("Part 1", getFewestSteps(intersections));
+  benchmark(() => {
+    console.log("Part 1", getFewestSteps(intersections));
+  }, "getFewestSteps");
+});
