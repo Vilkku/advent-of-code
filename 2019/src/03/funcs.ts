@@ -143,9 +143,11 @@ export const findIntersections = (path1: Path, path2: Path): Intersection[] => {
 };
 
 export const getClosestDistance = (intersections: Intersection[]): number =>
-  intersections
-    .map(({ coordinate }) => Math.abs(coordinate[0]) + Math.abs(coordinate[1]))
-    .sort((a, b) => a - b)[0];
+  Math.min(
+    ...intersections.map(
+      ({ coordinate }) => Math.abs(coordinate[0]) + Math.abs(coordinate[1]),
+    ),
+  );
 
 export const getFewestSteps = (intersections: Intersection[]): number =>
-  intersections.sort((a, b) => a.steps - b.steps)[0].steps;
+  Math.min(...intersections.map(({ steps }) => steps));
