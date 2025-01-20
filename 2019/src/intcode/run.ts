@@ -1,14 +1,24 @@
-import { getInstructionResult, parseInstruction } from "./instruction.ts";
+import {
+  type Connections,
+  getInstructionResult,
+  parseInstruction,
+} from "./instruction.ts";
 
 const OPCODE_HALT = 99;
-export const run = (initialMemory: number[]): number[] => {
+export const run = (
+  initialMemory: number[],
+  connections?: Connections,
+): number[] => {
   let memory = [...initialMemory];
   let pointer = 0;
 
   while (memory[pointer] !== OPCODE_HALT) {
-    const instruction = parseInstruction(pointer, memory);
-    const { address, value } = getInstructionResult(instruction, memory);
-    memory[address] = value;
+    const instruction = parseInstruction(pointer, memory, connections);
+    const instructionResult = getInstructionResult(instruction, memory);
+
+    if (instructionResult !== null) {
+      memory[instructionResult.address] = instructionResult.value;
+    }
 
     pointer += instruction.parameters.length + 1;
   }
