@@ -22,6 +22,10 @@ export const createParameters = (
   parameterModes: ParameterMode[],
   parameterCount: number,
 ): Parameter[] => {
+  if (pointer + parameterCount >= memory.length) {
+    throw new Error("Cannot create parameter, out of memory");
+  }
+
   const parameters: Parameter[] = memory
     .slice(pointer + 1, pointer + 1 + parameterCount)
     .map((value, index) => createParameter(value, parameterModes[index]));

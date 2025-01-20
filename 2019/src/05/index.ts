@@ -5,11 +5,8 @@ const initialMemory = inputToNumbers(
   await getInput(import.meta.dir, "input.txt"),
 );
 
-const diagCodes: number[] = [];
+const { output: part1DiagCodes } = run(initialMemory, 1);
+console.log("Part 1", part1DiagCodes[part1DiagCodes.length - 1]);
 
-run(initialMemory, {
-  input: () => 1,
-  output: (value: number) => diagCodes.push(value),
-});
-
-console.log("Part 1", diagCodes[diagCodes.length - 1]);
+const { output: part2DiagCodes } = run(initialMemory, 5);
+console.log("Part 2", part2DiagCodes[0]);

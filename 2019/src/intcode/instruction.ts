@@ -20,35 +20,56 @@ interface MultiplyInstruction {
 interface InputInstruction {
   type: "input";
   parameters: [Parameter];
-  connection: () => number;
 }
 
 interface OutputInstruction {
   type: "output";
   parameters: [Parameter];
-  connection: (value: number) => void;
+}
+
+interface JumpIfTrueInstruction {
+  type: "jump-if-true";
+  parameters: [Parameter, Parameter];
+}
+
+interface JumpIfFalseInstruction {
+  type: "jump-if-false";
+  parameters: [Parameter, Parameter];
+}
+
+interface LessThanInstruction {
+  type: "less-than";
+  parameters: [Parameter, Parameter, Parameter];
+}
+
+interface EqualsInstruction {
+  type: "equals";
+  parameters: [Parameter, Parameter, Parameter];
 }
 
 type Instruction =
   | AddInstruction
   | MultiplyInstruction
   | InputInstruction
-  | OutputInstruction;
+  | OutputInstruction
+  | JumpIfTrueInstruction
+  | JumpIfFalseInstruction
+  | LessThanInstruction
+  | EqualsInstruction;
 
-type InstructionResult = {
-  address: number;
-  value: number;
-} | null;
-
-export interface Connections {
-  input?: InputInstruction["connection"];
-  output?: OutputInstruction["connection"];
-}
+type InstructionResult =
+  | {
+      type: "update-value";
+      address: number;
+      value: number;
+    }
+  | { type: "set-output"; value: number }
+  | { type: "set-pointer"; value: number }
+  | { type: "nothing" };
 
 export const parseInstruction = (
   pointer: number,
   memory: number[],
-  connections?: Connections,
 ): Instruction => {
   const opcodeValue = memory[pointer];
   const opcodeDigits = opcodeValue.toString().split("").map(toInt);
@@ -70,19 +91,17 @@ export const parseInstruction = (
     case 2:
       return parseMultiplyInstruction(pointer, parameterModes, memory);
     case 3:
-      return parseInputInstruction(
-        pointer,
-        parameterModes,
-        memory,
-        connections,
-      );
+      return parseInputInstruction(pointer, parameterModes, memory);
     case 4:
-      return parseOutputInstruction(
-        pointer,
-        parameterModes,
-        memory,
-        connections,
-      );
+      return parseOutputInstruction(pointer, parameterModes, memory);
+    case 5:
+      return parseJumpIfTrueInstruction(pointer, parameterModes, memory);
+    case 6:
+      return parseJumpIfFalseInstruction(pointer, parameterModes, memory);
+    case 7:
+      return parseLessThanInstruction(pointer, parameterModes, memory);
+    case 8:
+      return parseEqualsInstruction(pointer, parameterModes, memory);
     default:
       throw new Error(`Unknown opcode ${opcode}`);
   }
@@ -92,143 +111,172 @@ const parseAddInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): AddInstruction => {
-  const PARAMETER_COUNT = 3;
-
-  if (pointer + PARAMETER_COUNT >= memory.length) {
-    throw new Error("Insufficient parameters in memory for the add opcode");
-  }
-
-  const parameters = createParameters(
-    pointer,
-    memory,
-    parameterModes,
-    PARAMETER_COUNT,
-  ) as [Parameter, Parameter, Parameter];
-
-  return {
-    type: "add",
-    parameters,
-  };
-};
+): AddInstruction => ({
+  type: "add",
+  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+    Parameter,
+    Parameter,
+    Parameter,
+  ],
+});
 
 const parseMultiplyInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): MultiplyInstruction => {
-  const PARAMETER_COUNT = 3;
-
-  if (pointer + PARAMETER_COUNT >= memory.length) {
-    throw new Error("Insufficient parameters in memory for the add opcode");
-  }
-
-  const parameters = createParameters(
-    pointer,
-    memory,
-    parameterModes,
-    PARAMETER_COUNT,
-  ) as [Parameter, Parameter, Parameter];
-
-  return {
-    type: "multiply",
-    parameters,
-  };
-};
+): MultiplyInstruction => ({
+  type: "multiply",
+  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+    Parameter,
+    Parameter,
+    Parameter,
+  ],
+});
 
 const parseInputInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-  connections?: Connections,
-): InputInstruction => {
-  if (!connections?.input) {
-    throw new Error("Missing connection for input");
-  }
-
-  const PARAMETER_COUNT = 1;
-
-  if (pointer + PARAMETER_COUNT >= memory.length) {
-    throw new Error("Insufficient parameters in memory for the input opcode");
-  }
-
-  const parameters = createParameters(
-    pointer,
-    memory,
-    parameterModes,
-    PARAMETER_COUNT,
-  ) as [Parameter];
-
-  return {
-    type: "input",
-    parameters,
-    connection: connections.input,
-  };
-};
+): InputInstruction => ({
+  type: "input",
+  parameters: createParameters(pointer, memory, parameterModes, 1) as [
+    Parameter,
+  ],
+});
 
 const parseOutputInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-  connections?: Connections,
-): OutputInstruction => {
-  if (!connections?.output) {
-    throw new Error("Missing connection for output");
-  }
+): OutputInstruction => ({
+  type: "output",
+  parameters: createParameters(pointer, memory, parameterModes, 1) as [
+    Parameter,
+  ],
+});
 
-  const PARAMETER_COUNT = 1;
+const parseJumpIfTrueInstruction = (
+  pointer: number,
+  parameterModes: ParameterMode[],
+  memory: number[],
+): JumpIfTrueInstruction => ({
+  type: "jump-if-true",
+  parameters: createParameters(pointer, memory, parameterModes, 2) as [
+    Parameter,
+    Parameter,
+  ],
+});
 
-  if (pointer + PARAMETER_COUNT >= memory.length) {
-    throw new Error("Insufficient parameters in memory for the output opcode");
-  }
+const parseJumpIfFalseInstruction = (
+  pointer: number,
+  parameterModes: ParameterMode[],
+  memory: number[],
+): JumpIfFalseInstruction => ({
+  type: "jump-if-false",
+  parameters: createParameters(pointer, memory, parameterModes, 2) as [
+    Parameter,
+    Parameter,
+  ],
+});
 
-  const parameters = createParameters(
-    pointer,
-    memory,
-    parameterModes,
-    PARAMETER_COUNT,
-  ) as [Parameter];
+const parseLessThanInstruction = (
+  pointer: number,
+  parameterModes: ParameterMode[],
+  memory: number[],
+): LessThanInstruction => ({
+  type: "less-than",
+  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+    Parameter,
+    Parameter,
+    Parameter,
+  ],
+});
 
-  return {
-    type: "output",
-    parameters,
-    connection: connections.output,
-  };
-};
+const parseEqualsInstruction = (
+  pointer: number,
+  parameterModes: ParameterMode[],
+  memory: number[],
+): EqualsInstruction => ({
+  type: "equals",
+  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+    Parameter,
+    Parameter,
+    Parameter,
+  ],
+});
 
 export const getInstructionResult = (
   instruction: Instruction,
   memory: number[],
+  input?: number,
 ): InstructionResult => {
   const { type, parameters } = instruction;
 
   switch (type) {
     case "add":
       return {
+        type: "update-value",
         address: parameters[2].value,
-        value: add(
-          getParameterValue(parameters[0], memory),
+        value:
+          getParameterValue(parameters[0], memory) +
           getParameterValue(parameters[1], memory),
-        ),
       };
     case "multiply":
       return {
+        type: "update-value",
         address: parameters[2].value,
-        value: multiply(
-          getParameterValue(parameters[0], memory),
+        value:
+          getParameterValue(parameters[0], memory) *
           getParameterValue(parameters[1], memory),
-        ),
       };
     case "input":
+      if (typeof input === "undefined") {
+        throw new Error("Missing input");
+      }
+
       return {
+        type: "update-value",
         address: parameters[0].value,
-        value: instruction.connection(),
+        value: input,
       };
     case "output":
-      instruction.connection(getParameterValue(parameters[0], memory));
-      return null;
+      return {
+        type: "set-output",
+        value: getParameterValue(parameters[0], memory),
+      };
+    case "jump-if-true":
+      return getParameterValue(parameters[0], memory) !== 0
+        ? {
+            type: "set-pointer",
+            value: getParameterValue(parameters[1], memory),
+          }
+        : { type: "nothing" };
+    case "jump-if-false":
+      return getParameterValue(parameters[0], memory) === 0
+        ? {
+            type: "set-pointer",
+            value: getParameterValue(parameters[1], memory),
+          }
+        : { type: "nothing" };
+    case "less-than":
+      return {
+        type: "update-value",
+        address: parameters[2].value,
+        value:
+          getParameterValue(parameters[0], memory) <
+          getParameterValue(parameters[1], memory)
+            ? 1
+            : 0,
+      };
+    case "equals":
+      return {
+        type: "update-value",
+        address: parameters[2].value,
+        value:
+          getParameterValue(parameters[0], memory) ===
+          getParameterValue(parameters[1], memory)
+            ? 1
+            : 0,
+      };
   }
 };
-
-const add = (a: number, b: number): number => a + b;
-const multiply = (a: number, b: number): number => a * b;
