@@ -1,5 +1,6 @@
 import { getInput, inputToNumbers } from "../util/input.ts";
-import { run } from "./funcs.ts";
+
+import { run } from "../intcode/run.ts";
 
 const initialMemory = inputToNumbers(
   await getInput(import.meta.dir, "input.txt"),
