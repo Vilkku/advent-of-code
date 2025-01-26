@@ -16,7 +16,7 @@ export const parseParameterMode = (value: number): ParameterMode => {
   }
 };
 
-export const createParameters = (
+export const generateParameters = (
   pointer: number,
   memory: number[],
   parameterModes: ParameterMode[],
@@ -28,7 +28,10 @@ export const createParameters = (
 
   const parameters: Parameter[] = memory
     .slice(pointer + 1, pointer + 1 + parameterCount)
-    .map((value, index) => createParameter(value, parameterModes[index]));
+    .map((value, index) => ({
+      value,
+      mode: parameterModes[index] ?? "position",
+    }));
 
   if (parameters.length !== parameterCount) {
     throw new Error("Invalid parameter count");
@@ -36,15 +39,6 @@ export const createParameters = (
 
   return parameters;
 };
-
-const DEFAULT_PARAMETER_MODE = "position";
-export const createParameter = (
-  value: number,
-  mode: ParameterMode = DEFAULT_PARAMETER_MODE,
-): Parameter => ({
-  value,
-  mode,
-});
 
 export const getParameterValue = (
   parameter: Parameter,

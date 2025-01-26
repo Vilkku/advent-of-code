@@ -1,6 +1,6 @@
 import { toInt } from "../util/input.ts";
 import {
-  createParameters,
+  generateParameters,
   getParameterValue,
   type Parameter,
   type ParameterMode,
@@ -113,7 +113,7 @@ const parseAddInstruction = (
   memory: number[],
 ): AddInstruction => ({
   type: "add",
-  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
     Parameter,
     Parameter,
     Parameter,
@@ -126,7 +126,7 @@ const parseMultiplyInstruction = (
   memory: number[],
 ): MultiplyInstruction => ({
   type: "multiply",
-  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
     Parameter,
     Parameter,
     Parameter,
@@ -139,7 +139,7 @@ const parseInputInstruction = (
   memory: number[],
 ): InputInstruction => ({
   type: "input",
-  parameters: createParameters(pointer, memory, parameterModes, 1) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 1) as [
     Parameter,
   ],
 });
@@ -150,7 +150,7 @@ const parseOutputInstruction = (
   memory: number[],
 ): OutputInstruction => ({
   type: "output",
-  parameters: createParameters(pointer, memory, parameterModes, 1) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 1) as [
     Parameter,
   ],
 });
@@ -161,7 +161,7 @@ const parseJumpIfTrueInstruction = (
   memory: number[],
 ): JumpIfTrueInstruction => ({
   type: "jump-if-true",
-  parameters: createParameters(pointer, memory, parameterModes, 2) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 2) as [
     Parameter,
     Parameter,
   ],
@@ -173,7 +173,7 @@ const parseJumpIfFalseInstruction = (
   memory: number[],
 ): JumpIfFalseInstruction => ({
   type: "jump-if-false",
-  parameters: createParameters(pointer, memory, parameterModes, 2) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 2) as [
     Parameter,
     Parameter,
   ],
@@ -185,7 +185,7 @@ const parseLessThanInstruction = (
   memory: number[],
 ): LessThanInstruction => ({
   type: "less-than",
-  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
     Parameter,
     Parameter,
     Parameter,
@@ -198,7 +198,7 @@ const parseEqualsInstruction = (
   memory: number[],
 ): EqualsInstruction => ({
   type: "equals",
-  parameters: createParameters(pointer, memory, parameterModes, 3) as [
+  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
     Parameter,
     Parameter,
     Parameter,

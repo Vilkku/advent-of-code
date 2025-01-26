@@ -1,6 +1,16 @@
 import { expect, test } from "bun:test";
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
-import { createParameter } from "./parameter.ts";
+import type { Parameter } from "./parameter.ts";
+
+const createPositionParameter = (value: number): Parameter => ({
+  value,
+  mode: "position",
+});
+
+const createImmediateParameter = (value: number): Parameter => ({
+  value,
+  mode: "immediate",
+});
 
 test("parseInstruction", () => {
   const program = [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50];
@@ -33,9 +43,9 @@ test("getInstructionResult", () => {
       {
         type: "add",
         parameters: [
-          createParameter(9),
-          createParameter(10),
-          createParameter(3),
+          createPositionParameter(9),
+          createPositionParameter(10),
+          createPositionParameter(3),
         ],
       },
       [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50],
@@ -47,9 +57,9 @@ test("getInstructionResult", () => {
       {
         type: "multiply",
         parameters: [
-          createParameter(3),
-          createParameter(11),
-          createParameter(0),
+          createPositionParameter(3),
+          createPositionParameter(11),
+          createPositionParameter(0),
         ],
       },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
@@ -61,9 +71,9 @@ test("getInstructionResult", () => {
       {
         type: "multiply",
         parameters: [
-          createParameter(3),
-          createParameter(11),
-          createParameter(0),
+          createPositionParameter(3),
+          createPositionParameter(11),
+          createPositionParameter(0),
         ],
       },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
@@ -75,9 +85,9 @@ test("getInstructionResult", () => {
       {
         type: "multiply",
         parameters: [
-          createParameter(4),
-          createParameter(3, "immediate"),
-          createParameter(4),
+          createPositionParameter(4),
+          createImmediateParameter(3),
+          createPositionParameter(4),
         ],
       },
       [1002, 4, 3, 4, 33],
