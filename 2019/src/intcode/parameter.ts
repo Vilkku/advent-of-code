@@ -1,9 +1,4 @@
-export type ParameterMode = "position" | "immediate";
-
-export interface Parameter {
-  value: number;
-  mode: ParameterMode;
-}
+import type { Parameter, ParameterMode } from "./types.ts";
 
 export const parseParameterMode = (value: number): ParameterMode => {
   switch (value) {

@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
-import type { Parameter } from "./parameter.ts";
+
+import type { Parameter } from "./types.ts";
 
 const createPositionParameter = (value: number): Parameter => ({
   value,

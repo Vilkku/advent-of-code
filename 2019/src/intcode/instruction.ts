@@ -2,70 +2,22 @@ import { toInt } from "../util/input.ts";
 import {
   generateParameters,
   getParameterValue,
-  type Parameter,
-  type ParameterMode,
   parseParameterMode,
 } from "./parameter.ts";
-
-interface AddInstruction {
-  type: "add";
-  parameters: [Parameter, Parameter, Parameter];
-}
-
-interface MultiplyInstruction {
-  type: "multiply";
-  parameters: [Parameter, Parameter, Parameter];
-}
-
-interface InputInstruction {
-  type: "input";
-  parameters: [Parameter];
-}
-
-interface OutputInstruction {
-  type: "output";
-  parameters: [Parameter];
-}
-
-interface JumpIfTrueInstruction {
-  type: "jump-if-true";
-  parameters: [Parameter, Parameter];
-}
-
-interface JumpIfFalseInstruction {
-  type: "jump-if-false";
-  parameters: [Parameter, Parameter];
-}
-
-interface LessThanInstruction {
-  type: "less-than";
-  parameters: [Parameter, Parameter, Parameter];
-}
-
-interface EqualsInstruction {
-  type: "equals";
-  parameters: [Parameter, Parameter, Parameter];
-}
-
-type Instruction =
-  | AddInstruction
-  | MultiplyInstruction
-  | InputInstruction
-  | OutputInstruction
-  | JumpIfTrueInstruction
-  | JumpIfFalseInstruction
-  | LessThanInstruction
-  | EqualsInstruction;
-
-type InstructionResult =
-  | {
-      type: "update-value";
-      address: number;
-      value: number;
-    }
-  | { type: "set-output"; value: number }
-  | { type: "set-pointer"; value: number }
-  | { type: "nothing" };
+import type {
+  AddInstruction,
+  EqualsInstruction,
+  InputInstruction,
+  Instruction,
+  InstructionResult,
+  JumpIfFalseInstruction,
+  JumpIfTrueInstruction,
+  LessThanInstruction,
+  MultiplyInstruction,
+  OutputInstruction,
+  Parameter,
+  ParameterMode,
+} from "./types.ts";
 
 export const parseInstruction = (
   pointer: number,
