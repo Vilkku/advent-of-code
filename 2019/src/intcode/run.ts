@@ -12,11 +12,13 @@ export const run = (
 
   while (memory[pointer] !== OPCODE_HALT) {
     const instruction = parseInstruction(pointer, memory);
-    const instructionResult = getInstructionResult(
-      instruction,
-      memory,
-      inputs ? inputs[inputIndex++] : undefined,
-    );
+
+    const input =
+      instruction.type === "input" && !!inputs
+        ? inputs[inputIndex++]
+        : undefined;
+
+    const instructionResult = getInstructionResult(instruction, memory, input);
 
     switch (instructionResult.type) {
       case "update-value":

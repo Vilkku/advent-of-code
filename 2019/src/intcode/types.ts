@@ -64,3 +64,20 @@ export type InstructionResult =
   | { type: "set-output"; value: number }
   | { type: "set-pointer"; value: number }
   | { type: "nothing" };
+
+export type RunStatus =
+  | { status: "running"; memory: number[] }
+  | {
+      status: "done";
+      memory: number[];
+    }
+  | {
+      status: "input";
+      memory: number[];
+      inputProvider: () => number;
+    }
+  | {
+      status: "output";
+      memory: number[];
+      output: number;
+    };
