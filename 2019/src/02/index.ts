@@ -12,7 +12,7 @@ part1InitialMemory[2] = 2;
 
 const part1Memory = run(initialMemory);
 
-console.log("Part 1", part1Memory[0]);
+console.log("Part 1", part1Memory.memory[0]);
 
 const getPart2Answer = (initialMemory: number[]) => {
   for (let noun = 0; noun <= 99; noun++) {
@@ -23,7 +23,7 @@ const getPart2Answer = (initialMemory: number[]) => {
 
       const part2Memory = run(part2InitialMemory);
 
-      if (part2Memory[0] === 19690720) {
+      if (part2Memory.memory[0] === 19690720) {
         return 100 * noun + verb;
       }
     }

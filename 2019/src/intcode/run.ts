@@ -3,15 +3,20 @@ import { getInstructionResult, parseInstruction } from "./instruction.ts";
 const OPCODE_HALT = 99;
 export const run = (
   initialMemory: number[],
-  input?: number,
+  inputs?: number[],
 ): { memory: number[]; output: number[] } => {
   let memory = [...initialMemory];
   let pointer = 0;
+  let inputIndex = 0;
   const output: number[] = [];
 
   while (memory[pointer] !== OPCODE_HALT) {
     const instruction = parseInstruction(pointer, memory);
-    const instructionResult = getInstructionResult(instruction, memory, input);
+    const instructionResult = getInstructionResult(
+      instruction,
+      memory,
+      inputs ? inputs[inputIndex++] : undefined,
+    );
 
     switch (instructionResult.type) {
       case "update-value":
