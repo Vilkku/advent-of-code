@@ -1,24 +1,26 @@
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
+import type { RunStatus } from "./types.ts";
 
 const OPCODE_HALT = 99;
 export const run = (
   initialMemory: number[],
-  inputs?: number[],
-): { memory: number[]; output: number[] } => {
+  input?: number,
+  pointer = 0,
+): RunStatus => {
   let memory = [...initialMemory];
-  let pointer = 0;
-  let inputIndex = 0;
-  const output: number[] = [];
 
   while (memory[pointer] !== OPCODE_HALT) {
     const instruction = parseInstruction(pointer, memory);
 
-    const input =
-      instruction.type === "input" && !!inputs
-        ? inputs[inputIndex++]
-        : undefined;
+    if (instruction.type === "input" && typeof input === "undefined") {
+      return { status: "input", memory, pointer };
+    }
 
     const instructionResult = getInstructionResult(instruction, memory, input);
+
+    if (instruction.type === "input") {
+      input = undefined;
+    }
 
     switch (instructionResult.type) {
       case "update-value":
@@ -26,9 +28,13 @@ export const run = (
         pointer += instruction.parameters.length + 1;
         break;
       case "set-output":
-        output.push(instructionResult.value);
         pointer += instruction.parameters.length + 1;
-        break;
+        return {
+          status: "output",
+          memory,
+          pointer,
+          output: instructionResult.value,
+        };
       case "nothing":
         pointer += instruction.parameters.length + 1;
         break;
@@ -40,5 +46,5 @@ export const run = (
     }
   }
 
-  return { memory, output };
+  return { status: "done", memory };
 };

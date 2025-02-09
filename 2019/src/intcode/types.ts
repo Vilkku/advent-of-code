@@ -66,7 +66,6 @@ export type InstructionResult =
   | { type: "nothing" };
 
 export type RunStatus =
-  | { status: "running"; memory: number[] }
   | {
       status: "done";
       memory: number[];
@@ -74,10 +73,11 @@ export type RunStatus =
   | {
       status: "input";
       memory: number[];
-      inputProvider: () => number;
+      pointer: number;
     }
   | {
       status: "output";
       memory: number[];
       output: number;
+      pointer: number;
     };
