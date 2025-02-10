@@ -5,23 +5,36 @@ export function getMaxThrusterSignal(initialMemory: number[]) {
   const maxPhaseSetting = 4;
   let highestSignal = 0;
 
+  function getNextOutput(phaseSetting: number, previousOutput: number): number {
+    const firstStatus = run(initialMemory, phaseSetting);
+
+    if (firstStatus.status !== "input") {
+      throw new Error(
+        `Expected status to be "input", got "${firstStatus.status}"`,
+      );
+    }
+
+    const secondStatus = run(
+      firstStatus.memory,
+      previousOutput,
+      firstStatus.pointer,
+    );
+
+    if (secondStatus.status !== "output") {
+      throw new Error(
+        `Expected status to be "output", got "${secondStatus.status}"`,
+      );
+    }
+
+    return secondStatus.output;
+  }
+
   for (
     let aPhaseSetting = minPhaseSetting;
     aPhaseSetting <= maxPhaseSetting;
     aPhaseSetting++
   ) {
-    const aFirstStatus = run(initialMemory, aPhaseSetting);
-
-    if (aFirstStatus.status !== "input") {
-      console.log(aFirstStatus);
-      throw new Error(`Expected A input, got ${aFirstStatus.status}`);
-    }
-
-    const aSecondStatus = run(aFirstStatus.memory, 0, aFirstStatus.pointer);
-
-    if (aSecondStatus.status !== "output") {
-      throw new Error(`Expected A output, got ${aSecondStatus.status}`);
-    }
+    const aOutput = getNextOutput(aPhaseSetting, 0);
 
     for (
       let bPhaseSetting = minPhaseSetting;
@@ -32,21 +45,7 @@ export function getMaxThrusterSignal(initialMemory: number[]) {
         continue;
       }
 
-      const bFirstStatus = run(initialMemory, bPhaseSetting);
-
-      if (bFirstStatus.status !== "input") {
-        throw new Error(`Expected B input, got ${bFirstStatus.status}`);
-      }
-
-      const bSecondStatus = run(
-        bFirstStatus.memory,
-        aSecondStatus.output,
-        bFirstStatus.pointer,
-      );
-
-      if (bSecondStatus.status !== "output") {
-        throw new Error(`Expected B output, got ${bSecondStatus.status}`);
-      }
+      const bOutput = getNextOutput(bPhaseSetting, aOutput);
 
       for (
         let cPhaseSetting = minPhaseSetting;
@@ -57,21 +56,7 @@ export function getMaxThrusterSignal(initialMemory: number[]) {
           continue;
         }
 
-        const cFirstStatus = run(initialMemory, cPhaseSetting);
-
-        if (cFirstStatus.status !== "input") {
-          throw new Error(`Expected C input, got ${cFirstStatus.status}`);
-        }
-
-        const cSecondStatus = run(
-          cFirstStatus.memory,
-          bSecondStatus.output,
-          cFirstStatus.pointer,
-        );
-
-        if (cSecondStatus.status !== "output") {
-          throw new Error(`Expected C output, got ${bSecondStatus.status}`);
-        }
+        const cOutput = getNextOutput(cPhaseSetting, bOutput);
 
         for (
           let dPhaseSetting = minPhaseSetting;
@@ -86,21 +71,7 @@ export function getMaxThrusterSignal(initialMemory: number[]) {
             continue;
           }
 
-          const dFirstStatus = run(initialMemory, dPhaseSetting);
-
-          if (dFirstStatus.status !== "input") {
-            throw new Error(`Expected D input, got ${dFirstStatus.status}`);
-          }
-
-          const dSecondStatus = run(
-            dFirstStatus.memory,
-            cSecondStatus.output,
-            dFirstStatus.pointer,
-          );
-
-          if (dSecondStatus.status !== "output") {
-            throw new Error(`Expected D output, got ${dSecondStatus.status}`);
-          }
+          const dOutput = getNextOutput(dPhaseSetting, cOutput);
 
           for (
             let ePhaseSetting = minPhaseSetting;
@@ -118,24 +89,10 @@ export function getMaxThrusterSignal(initialMemory: number[]) {
               continue;
             }
 
-            const eFirstStatus = run(initialMemory, ePhaseSetting);
+            const eOutput = getNextOutput(ePhaseSetting, dOutput);
 
-            if (eFirstStatus.status !== "input") {
-              throw new Error(`Expected E input, got ${eFirstStatus.status}`);
-            }
-
-            const eSecondStatus = run(
-              eFirstStatus.memory,
-              dSecondStatus.output,
-              eFirstStatus.pointer,
-            );
-
-            if (eSecondStatus.status !== "output") {
-              throw new Error(`Expected E output, got ${eSecondStatus.status}`);
-            }
-
-            if (eSecondStatus.output > highestSignal) {
-              highestSignal = eSecondStatus.output;
+            if (eOutput > highestSignal) {
+              highestSignal = eOutput;
             }
           }
         }
