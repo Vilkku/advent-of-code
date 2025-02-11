@@ -65,19 +65,23 @@ export type InstructionResult =
   | { type: "set-pointer"; value: number }
   | { type: "nothing" };
 
-export type RunStatus =
-  | {
-      status: "done";
-      memory: number[];
-    }
-  | {
-      status: "input";
-      memory: number[];
-      pointer: number;
-    }
-  | {
-      status: "output";
-      memory: number[];
-      output: number;
-      pointer: number;
-    };
+export interface DoneRunStatus {
+  status: "done";
+  memory: number[];
+  pointer: number;
+}
+
+export interface InputRunStatus {
+  status: "input";
+  memory: number[];
+  pointer: number;
+}
+
+export interface OutputRunStatus {
+  status: "output";
+  memory: number[];
+  output: number;
+  pointer: number;
+}
+
+export type RunStatus = DoneRunStatus | InputRunStatus | OutputRunStatus;

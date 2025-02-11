@@ -46,7 +46,7 @@ export function run(
     }
   }
 
-  return { status: "done", memory };
+  return { status: "done", memory, pointer };
 }
 
 export function runUntilCompletion(

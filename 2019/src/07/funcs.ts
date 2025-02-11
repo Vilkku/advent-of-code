@@ -1,104 +1,106 @@
 import { run } from "../intcode/run";
+import type { RunStatus } from "../intcode/types.ts";
 
-export function getMaxThrusterSignal(initialMemory: number[]) {
-  const minPhaseSetting = 0;
-  const maxPhaseSetting = 4;
-  let highestSignal = 0;
-
-  function getNextOutput(phaseSetting: number, previousOutput: number): number {
-    const firstStatus = run(initialMemory, phaseSetting);
-
-    if (firstStatus.status !== "input") {
-      throw new Error(
-        `Expected status to be "input", got "${firstStatus.status}"`,
-      );
-    }
-
-    const secondStatus = run(
-      firstStatus.memory,
-      previousOutput,
-      firstStatus.pointer,
-    );
-
-    if (secondStatus.status !== "output") {
-      throw new Error(
-        `Expected status to be "output", got "${secondStatus.status}"`,
-      );
-    }
-
-    return secondStatus.output;
+function getPermutations(min: number, max: number): number[][] {
+  if (min >= max) {
+    throw new Error("max should be bigger than min");
   }
 
-  for (
-    let aPhaseSetting = minPhaseSetting;
-    aPhaseSetting <= maxPhaseSetting;
-    aPhaseSetting++
-  ) {
-    const aOutput = getNextOutput(aPhaseSetting, 0);
+  const permutations: number[][] = [];
 
-    for (
-      let bPhaseSetting = minPhaseSetting;
-      bPhaseSetting <= maxPhaseSetting;
-      bPhaseSetting++
-    ) {
-      if ([aPhaseSetting].includes(bPhaseSetting)) {
+  for (let a = min; a <= max; a++) {
+    for (let b = min; b <= max; b++) {
+      if ([a].includes(b)) {
         continue;
       }
 
-      const bOutput = getNextOutput(bPhaseSetting, aOutput);
-
-      for (
-        let cPhaseSetting = minPhaseSetting;
-        cPhaseSetting <= maxPhaseSetting;
-        cPhaseSetting++
-      ) {
-        if ([aPhaseSetting, bPhaseSetting].includes(cPhaseSetting)) {
+      for (let c = min; c <= max; c++) {
+        if ([a, b].includes(c)) {
           continue;
         }
 
-        const cOutput = getNextOutput(cPhaseSetting, bOutput);
-
-        for (
-          let dPhaseSetting = minPhaseSetting;
-          dPhaseSetting <= maxPhaseSetting;
-          dPhaseSetting++
-        ) {
-          if (
-            [aPhaseSetting, bPhaseSetting, cPhaseSetting].includes(
-              dPhaseSetting,
-            )
-          ) {
+        for (let d = min; d <= max; d++) {
+          if ([a, b, c].includes(d)) {
             continue;
           }
 
-          const dOutput = getNextOutput(dPhaseSetting, cOutput);
-
-          for (
-            let ePhaseSetting = minPhaseSetting;
-            ePhaseSetting <= maxPhaseSetting;
-            ePhaseSetting++
-          ) {
-            if (
-              [
-                aPhaseSetting,
-                bPhaseSetting,
-                cPhaseSetting,
-                dPhaseSetting,
-              ].includes(ePhaseSetting)
-            ) {
+          for (let e = min; e <= max; e++) {
+            if ([a, b, c, d].includes(e)) {
               continue;
             }
 
-            const eOutput = getNextOutput(ePhaseSetting, dOutput);
-
-            if (eOutput > highestSignal) {
-              highestSignal = eOutput;
-            }
+            permutations.push([a, b, c, d, e]);
           }
         }
       }
     }
   }
 
-  return highestSignal;
+  return permutations;
+}
+
+function getNextOutput(
+  initialMemory: number[],
+  input: number,
+  previousOutput: number,
+): RunStatus {
+  const firstStatus = run(initialMemory, input);
+
+  if (firstStatus.status !== "input") {
+    throw new Error(
+      `Expected status to be "input", got "${firstStatus.status}"`,
+    );
+  }
+
+  return run(firstStatus.memory, previousOutput, firstStatus.pointer);
+}
+
+export function getMaxThrusterSignal(initialMemory: number[]) {
+  const permutations = getPermutations(0, 4);
+
+  const results = permutations.map(([a, b, c, d, e]) => {
+    const aResult = getNextOutput(initialMemory, a, 0);
+
+    if (aResult.status !== "output") {
+      throw new Error(
+        `Expected status to be "output", got "${aResult.status}"`,
+      );
+    }
+
+    const bResult = getNextOutput(initialMemory, b, aResult.output);
+
+    if (bResult.status !== "output") {
+      throw new Error(
+        `Expected status to be "output", got "${bResult.status}"`,
+      );
+    }
+
+    const cResult = getNextOutput(initialMemory, c, bResult.output);
+
+    if (cResult.status !== "output") {
+      throw new Error(
+        `Expected status to be "output", got "${cResult.status}"`,
+      );
+    }
+
+    const dResult = getNextOutput(initialMemory, d, cResult.output);
+
+    if (dResult.status !== "output") {
+      throw new Error(
+        `Expected status to be "output", got "${dResult.status}"`,
+      );
+    }
+
+    const eResult = getNextOutput(initialMemory, e, dResult.output);
+
+    if (eResult.status !== "output") {
+      throw new Error(
+        `Expected status to be "output", got "${eResult.status}"`,
+      );
+    }
+
+    return eResult.output;
+  });
+
+  return Math.max(...results);
 }
