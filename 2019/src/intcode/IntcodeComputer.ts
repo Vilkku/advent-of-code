@@ -1,4 +1,4 @@
-import type { OutputRunStatus, RunStatus } from "./types.ts";
+import type { RunStatus } from "./types.ts";
 import { run } from "./run.ts";
 
 export class IntcodeComputer {
