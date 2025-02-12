@@ -1,0 +1,32 @@
+import type { OutputRunStatus, RunStatus } from "./types.ts";
+import { run } from "./run.ts";
+
+export class IntcodeComputer {
+  memory: number[];
+  pointer: number = 0;
+  inputQueue: number[] = [];
+
+  constructor(initialMemory: number[], initialInputs: number[]) {
+    this.memory = [...initialMemory];
+    this.inputQueue = [...initialInputs];
+  }
+
+  run(): RunStatus {
+    const result = run(this.memory, this.inputQueue, this.pointer);
+
+    this.memory = [...result.memory];
+    this.pointer = result.pointer;
+
+    return result;
+  }
+
+  runUntilOutput(): OutputRunStatus {
+    const result = this.run();
+
+    if (result.status !== "output") {
+      throw new Error(`Expected status to be "output", got "${result.status}"`);
+    }
+
+    return result;
+  }
+}

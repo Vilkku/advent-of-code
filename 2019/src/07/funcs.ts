@@ -1,7 +1,6 @@
-import { run } from "../intcode/run";
-import type { RunStatus } from "../intcode/types.ts";
+import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
 
-function getPermutations(min: number, max: number): number[][] {
+function generatePermutations(min: number, max: number): number[][] {
   if (min >= max) {
     throw new Error("max should be bigger than min");
   }
@@ -39,67 +38,91 @@ function getPermutations(min: number, max: number): number[][] {
   return permutations;
 }
 
-function getNextOutput(
+export function getMaxThrusterSignal(
   initialMemory: number[],
-  input: number,
-  previousOutput: number,
-): RunStatus {
-  const firstStatus = run(initialMemory, input);
-
-  if (firstStatus.status !== "input") {
-    throw new Error(
-      `Expected status to be "input", got "${firstStatus.status}"`,
-    );
-  }
-
-  return run(firstStatus.memory, previousOutput, firstStatus.pointer);
-}
-
-export function getMaxThrusterSignal(initialMemory: number[]) {
-  const permutations = getPermutations(0, 4);
+  minSetting: number,
+  maxSetting: number,
+) {
+  const permutations = generatePermutations(minSetting, maxSetting);
 
   const results = permutations.map(([a, b, c, d, e]) => {
-    const aResult = getNextOutput(initialMemory, a, 0);
+    const aComputer = new IntcodeComputer(initialMemory, [a, 0]);
+    const bComputer = new IntcodeComputer(initialMemory, [b]);
+    const cComputer = new IntcodeComputer(initialMemory, [c]);
+    const dComputer = new IntcodeComputer(initialMemory, [d]);
+    const eComputer = new IntcodeComputer(initialMemory, [e]);
 
-    if (aResult.status !== "output") {
-      throw new Error(
-        `Expected status to be "output", got "${aResult.status}"`,
-      );
+    let done = false;
+    let lastEOutput = 0;
+
+    while (!done) {
+      const aResult = aComputer.run();
+
+      switch (aResult.status) {
+        case "output":
+          bComputer.inputQueue.push(aResult.output);
+          break;
+        case "done":
+          done = true;
+          break;
+        default:
+          throw new Error(`Unexpected status "${aResult.status}"`);
+      }
+
+      const bResult = bComputer.run();
+
+      switch (bResult.status) {
+        case "output":
+          cComputer.inputQueue.push(bResult.output);
+          break;
+        case "done":
+          done = true;
+          break;
+        default:
+          throw new Error(`Unexpected status "${bResult.status}"`);
+      }
+
+      const cResult = cComputer.run();
+
+      switch (cResult.status) {
+        case "output":
+          dComputer.inputQueue.push(cResult.output);
+          break;
+        case "done":
+          done = true;
+          break;
+        default:
+          throw new Error(`Unexpected status "${cResult.status}"`);
+      }
+
+      const dResult = dComputer.run();
+
+      switch (dResult.status) {
+        case "output":
+          eComputer.inputQueue.push(dResult.output);
+          break;
+        case "done":
+          done = true;
+          break;
+        default:
+          throw new Error(`Unexpected status "${dResult.status}"`);
+      }
+
+      const eResult = eComputer.run();
+
+      switch (eResult.status) {
+        case "output":
+          lastEOutput = eResult.output;
+          break;
+        case "done":
+          done = true;
+          break;
+        default:
+          throw new Error(`Unexpected status "${eResult.status}"`);
+      }
     }
 
-    const bResult = getNextOutput(initialMemory, b, aResult.output);
-
-    if (bResult.status !== "output") {
-      throw new Error(
-        `Expected status to be "output", got "${bResult.status}"`,
-      );
-    }
-
-    const cResult = getNextOutput(initialMemory, c, bResult.output);
-
-    if (cResult.status !== "output") {
-      throw new Error(
-        `Expected status to be "output", got "${cResult.status}"`,
-      );
-    }
-
-    const dResult = getNextOutput(initialMemory, d, cResult.output);
-
-    if (dResult.status !== "output") {
-      throw new Error(
-        `Expected status to be "output", got "${dResult.status}"`,
-      );
-    }
-
-    const eResult = getNextOutput(initialMemory, e, dResult.output);
-
-    if (eResult.status !== "output") {
-      throw new Error(
-        `Expected status to be "output", got "${eResult.status}"`,
-      );
-    }
-
-    return eResult.output;
+    return lastEOutput;
   });
 
   return Math.max(...results);

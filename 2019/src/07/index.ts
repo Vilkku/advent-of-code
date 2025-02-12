@@ -7,5 +7,5 @@ const initialMemory = inputToNumbers(
 );
 
 benchmark(() => {
-  console.log("Part 1", getMaxThrusterSignal(initialMemory));
+  console.log("Part 1", getMaxThrusterSignal(initialMemory, 0, 4));
 }, "Part 1");
