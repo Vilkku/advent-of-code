@@ -1,8 +1,8 @@
-import { getInput, inputToNumbers } from "../util/input.ts";
+import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import { benchmark } from "../util/benchmark.ts";
 import { getMaxThrusterSignal } from "./funcs.ts";
 
-const initialMemory = inputToNumbers(
+const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
 );
 

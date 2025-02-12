@@ -1,8 +1,8 @@
-import { getInput, inputToNumbers } from "../util/input.ts";
+import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 
 import { run } from "../intcode/run.ts";
 
-const initialMemory = inputToNumbers(
+const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
 );
 
