@@ -4,21 +4,21 @@ import type { RunStatus } from "./types.ts";
 const OPCODE_HALT = 99;
 export function run(
   initialMemory: number[],
-  initialInputQueue: number[] = [],
+  inputQueue: number[] = [],
   pointer = 0,
 ): RunStatus {
   const memory = [...initialMemory];
-  const inputQueue = [...initialInputQueue];
 
   while (memory[pointer] !== OPCODE_HALT) {
     const instruction = parseInstruction(pointer, memory);
 
     let input;
     if (instruction.type === "input") {
-      if (inputQueue.length === 0) {
+      // TODO inputQueue is being mutated here
+      input = inputQueue.shift();
+
+      if (typeof input === "undefined") {
         return { status: "input", memory, pointer };
-      } else {
-        input = inputQueue.shift();
       }
     }
 

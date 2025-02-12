@@ -19,14 +19,4 @@ export class IntcodeComputer {
 
     return result;
   }
-
-  runUntilOutput(): OutputRunStatus {
-    const result = this.run();
-
-    if (result.status !== "output") {
-      throw new Error(`Expected status to be "output", got "${result.status}"`);
-    }
-
-    return result;
-  }
 }

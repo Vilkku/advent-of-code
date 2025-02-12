@@ -113,6 +113,7 @@ export function getMaxThrusterSignal(
       switch (eResult.status) {
         case "output":
           lastEOutput = eResult.output;
+          aComputer.inputQueue.push(eResult.output);
           break;
         case "done":
           done = true;
