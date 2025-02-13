@@ -1,4 +1,4 @@
-import { benchmark } from "../util/benchmark";
+import { benchmark_deprecated } from "../util/benchmark";
 import { getInput, inputToRows } from "../util/input";
 import { getOrbitCount, getOrbitTree, getStepsFromAtoB } from "./funcs";
 
@@ -6,7 +6,7 @@ const orbitMap: [string, string][] = inputToRows(
   await getInput(import.meta.dir, "input.txt"),
 ).map((row) => row.split(")") as [string, string]);
 
-benchmark(() => {
+benchmark_deprecated(() => {
   const orbitTree = getOrbitTree(orbitMap);
 
   console.log("Part 1", getOrbitCount(orbitTree, "COM"));
