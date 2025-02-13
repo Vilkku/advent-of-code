@@ -13,13 +13,7 @@ const layerZeroCounts: number[] = [];
 
 for (let i = 0; i < input.length; i += pixelsPerLayer) {
   const layer = input.slice(i, i + pixelsPerLayer);
-  const layerZeroCount = layer.reduce((prev, curr) => {
-    if (curr === 0) {
-      return prev + 1;
-    } else {
-      return prev;
-    }
-  }, 0);
+  const layerZeroCount = layer.filter((n) => n === 0).length;
 
   layers.push(layer);
   layerZeroCounts.push(layerZeroCount);
@@ -31,15 +25,9 @@ const layerWithFewestZeroesIndex = layerZeroCounts.indexOf(
 
 const digitsInLayerWithFewestZeroes = layers[layerWithFewestZeroesIndex].reduce<
   Record<number, number>
->((prev, curr) => {
-  if (!prev[curr]) {
-    prev[curr] = 0;
-  }
-
-  return {
-    ...prev,
-    [curr]: prev[curr] + 1,
-  };
+>((acc, num) => {
+  acc[num] = (acc[num] || 0) + 1;
+  return acc;
 }, {});
 
 console.log(
@@ -47,25 +35,27 @@ console.log(
   digitsInLayerWithFewestZeroes[1] * digitsInLayerWithFewestZeroes[2],
 );
 
+const px = {
+  black: 0,
+  white: 1,
+  transparent: 2,
+} as const;
+
 const image: number[][] = [];
 for (let y = 0; y < height; y++) {
   image[y] = [];
   for (let x = 0; x < width; x++) {
-    const pixelIndex = y * width + x;
-    const topmostPixel = layers.reduce<number>((prev, layer) => {
-      if (prev === 2) {
-        return layer[pixelIndex];
-      }
+    const pxIndex = y * width + x;
+    const topmostPx =
+      layers.find((layer) => layer[pxIndex] !== px.transparent)?.[pxIndex] ??
+      px.transparent;
 
-      return prev;
-    }, 2);
-
-    image[y].push(topmostPixel);
+    image[y].push(topmostPx);
   }
 }
 
-const pixelStr = "██";
-const printedWidth = width * pixelStr.length;
+const pxStr = "██";
+const printedWidth = width * pxStr.length;
 
 console.log(
   `+${" Part 2 ".padStart(printedWidth / 2 + 4, "-").padEnd(printedWidth, "-")}+`,
@@ -76,10 +66,10 @@ image.forEach((row) => {
       row
         .map((pixel) => {
           switch (pixel) {
-            case 0:
-              return styleText("black", pixelStr);
-            case 1:
-              return styleText("white", pixelStr);
+            case px.black:
+              return styleText("black", pxStr);
+            case px.white:
+              return styleText("white", pxStr);
             default:
               throw new Error(`Unexpected pixel "${pixel}"`);
           }
@@ -88,4 +78,4 @@ image.forEach((row) => {
       "|",
   );
 });
-console.log(`+${"".padStart(printedWidth, "-")}+`);
+console.log(`+${"-".repeat(printedWidth)}+`);
