@@ -7,6 +7,6 @@
     "prettier": "3.4.2"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.7.3"
   }
 }
