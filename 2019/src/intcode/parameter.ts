@@ -1,4 +1,5 @@
 import type { Parameter, ParameterMode } from "./types.ts";
+import { readFromMemory } from "./readFromMemory.ts";
 
 export const parseParameterMode = (value: number): ParameterMode => {
   switch (value) {
@@ -6,6 +7,8 @@ export const parseParameterMode = (value: number): ParameterMode => {
       return "position";
     case 1:
       return "immediate";
+    case 2:
+      return "relative";
     default:
       throw new Error(`Unknown parameter mode ${value}`);
   }
@@ -37,18 +40,28 @@ export const generateParameters = (
 
 export const getParameterValue = (
   parameter: Parameter,
-  memory: number[],
+  relativeBase: number,
 ): number => {
   switch (parameter.mode) {
     case "position":
-      if (typeof memory[parameter.value] === "undefined") {
-        throw new Error("Invalid memory address");
-      }
-
-      return memory[parameter.value];
     case "immediate":
       return parameter.value;
-    default:
-      throw new Error(`Unknown parameter mode ${parameter.mode}`);
+    case "relative":
+      return parameter.value + relativeBase;
+  }
+};
+
+export const getParameterValueFromMemory = (
+  parameter: Parameter,
+  memory: number[],
+  relativeBase: number,
+): number => {
+  switch (parameter.mode) {
+    case "position":
+      return readFromMemory(memory, parameter.value);
+    case "immediate":
+      return parameter.value;
+    case "relative":
+      return readFromMemory(memory, parameter.value + relativeBase);
   }
 };

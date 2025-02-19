@@ -2,10 +2,12 @@ import { toInt } from "../util/input.ts";
 import {
   generateParameters,
   getParameterValue,
+  getParameterValueFromMemory,
   parseParameterMode,
 } from "./parameter.ts";
 import type {
   AddInstruction,
+  AdjustRelativeBaseInstruction,
   EqualsInstruction,
   InputInstruction,
   Instruction,
@@ -18,12 +20,13 @@ import type {
   Parameter,
   ParameterMode,
 } from "./types.ts";
+import { readFromMemory } from "./readFromMemory.ts";
 
 export const parseInstruction = (
   pointer: number,
   memory: number[],
 ): Instruction => {
-  const opcodeValue = memory[pointer];
+  const opcodeValue = readFromMemory(memory, pointer);
   const opcodeDigits = opcodeValue.toString().split("").map(toInt);
   const opcode =
     opcodeDigits.length > 1
@@ -54,6 +57,12 @@ export const parseInstruction = (
       return parseLessThanInstruction(pointer, parameterModes, memory);
     case 8:
       return parseEqualsInstruction(pointer, parameterModes, memory);
+    case 9:
+      return parseAdjustRelativeBaseInstruction(
+        pointer,
+        parameterModes,
+        memory,
+      );
     default:
       throw new Error(`Unknown opcode ${opcode}`);
   }
@@ -157,9 +166,21 @@ const parseEqualsInstruction = (
   ],
 });
 
+const parseAdjustRelativeBaseInstruction = (
+  pointer: number,
+  parameterModes: ParameterMode[],
+  memory: number[],
+): AdjustRelativeBaseInstruction => ({
+  type: "adjust-relative-base",
+  parameters: generateParameters(pointer, memory, parameterModes, 1) as [
+    Parameter,
+  ],
+});
+
 export const getInstructionResult = (
   instruction: Instruction,
   memory: number[],
+  relativeBase: number,
   input?: number,
 ): InstructionResult => {
   const { type, parameters } = instruction;
@@ -168,18 +189,18 @@ export const getInstructionResult = (
     case "add":
       return {
         type: "update-value",
-        address: parameters[2].value,
+        address: getParameterValue(parameters[2], relativeBase),
         value:
-          getParameterValue(parameters[0], memory) +
-          getParameterValue(parameters[1], memory),
+          getParameterValueFromMemory(parameters[0], memory, relativeBase) +
+          getParameterValueFromMemory(parameters[1], memory, relativeBase),
       };
     case "multiply":
       return {
         type: "update-value",
-        address: parameters[2].value,
+        address: getParameterValue(parameters[2], relativeBase),
         value:
-          getParameterValue(parameters[0], memory) *
-          getParameterValue(parameters[1], memory),
+          getParameterValueFromMemory(parameters[0], memory, relativeBase) *
+          getParameterValueFromMemory(parameters[1], memory, relativeBase),
       };
     case "input":
       if (typeof input === "undefined") {
@@ -188,47 +209,68 @@ export const getInstructionResult = (
 
       return {
         type: "update-value",
-        address: parameters[0].value,
+        address: getParameterValue(parameters[0], relativeBase),
         value: input,
       };
     case "output":
       return {
         type: "set-output",
-        value: getParameterValue(parameters[0], memory),
+        value: getParameterValueFromMemory(parameters[0], memory, relativeBase),
       };
     case "jump-if-true":
-      return getParameterValue(parameters[0], memory) !== 0
+      return getParameterValueFromMemory(
+        parameters[0],
+        memory,
+        relativeBase,
+      ) !== 0
         ? {
             type: "set-pointer",
-            value: getParameterValue(parameters[1], memory),
+            value: getParameterValueFromMemory(
+              parameters[1],
+              memory,
+              relativeBase,
+            ),
           }
         : { type: "nothing" };
     case "jump-if-false":
-      return getParameterValue(parameters[0], memory) === 0
+      return getParameterValueFromMemory(
+        parameters[0],
+        memory,
+        relativeBase,
+      ) === 0
         ? {
             type: "set-pointer",
-            value: getParameterValue(parameters[1], memory),
+            value: getParameterValueFromMemory(
+              parameters[1],
+              memory,
+              relativeBase,
+            ),
           }
         : { type: "nothing" };
     case "less-than":
       return {
         type: "update-value",
-        address: parameters[2].value,
+        address: getParameterValue(parameters[2], relativeBase),
         value:
-          getParameterValue(parameters[0], memory) <
-          getParameterValue(parameters[1], memory)
+          getParameterValueFromMemory(parameters[0], memory, relativeBase) <
+          getParameterValueFromMemory(parameters[1], memory, relativeBase)
             ? 1
             : 0,
       };
     case "equals":
       return {
         type: "update-value",
-        address: parameters[2].value,
+        address: getParameterValue(parameters[2], relativeBase),
         value:
-          getParameterValue(parameters[0], memory) ===
-          getParameterValue(parameters[1], memory)
+          getParameterValueFromMemory(parameters[0], memory, relativeBase) ===
+          getParameterValueFromMemory(parameters[1], memory, relativeBase)
             ? 1
             : 0,
+      };
+    case "adjust-relative-base":
+      return {
+        type: "update-relative-base",
+        value: getParameterValueFromMemory(parameters[0], memory, relativeBase),
       };
   }
 };

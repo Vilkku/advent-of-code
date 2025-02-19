@@ -1,15 +1,17 @@
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
 import type { RunStatus } from "./types.ts";
+import { readFromMemory } from "./readFromMemory.ts";
 
 const OPCODE_HALT = 99;
 export function run(
   initialMemory: number[],
   inputQueue: number[] = [],
   pointer = 0,
+  relativeBase = 0,
 ): RunStatus {
   const memory = [...initialMemory];
 
-  while (memory[pointer] !== OPCODE_HALT) {
+  while (readFromMemory(memory, pointer) !== OPCODE_HALT) {
     const instruction = parseInstruction(pointer, memory);
 
     let input;
@@ -18,11 +20,16 @@ export function run(
       input = inputQueue.shift();
 
       if (typeof input === "undefined") {
-        return { status: "input", memory, pointer };
+        return { status: "input", memory, pointer, relativeBase };
       }
     }
 
-    const instructionResult = getInstructionResult(instruction, memory, input);
+    const instructionResult = getInstructionResult(
+      instruction,
+      memory,
+      relativeBase,
+      input,
+    );
 
     switch (instructionResult.type) {
       case "update-value":
@@ -36,19 +43,24 @@ export function run(
           memory,
           pointer,
           output: instructionResult.value,
+          relativeBase,
         };
-      case "nothing":
-        pointer += instruction.parameters.length + 1;
-        break;
       case "set-pointer":
         pointer = instructionResult.value;
         break;
+      case "update-relative-base":
+        relativeBase += instructionResult.value;
+        pointer += instruction.parameters.length + 1;
+        break;
+      case "nothing":
+        pointer += instruction.parameters.length + 1;
+        break;
       default:
-        throw new Error("Unknown instruction");
+        return instructionResult satisfies never;
     }
   }
 
-  return { status: "done", memory, pointer };
+  return { status: "done", memory, pointer, relativeBase };
 }
 
 export function runUntilCompletion(
@@ -63,11 +75,21 @@ export function runUntilCompletion(
   while (result.status !== "done") {
     switch (result.status) {
       case "input":
-        result = run(result.memory, inputArray, result.pointer);
+        result = run(
+          result.memory,
+          inputArray,
+          result.pointer,
+          result.relativeBase,
+        );
         break;
       case "output":
         output.push(result.output);
-        result = run(result.memory, inputArray, result.pointer);
+        result = run(
+          result.memory,
+          inputArray,
+          result.pointer,
+          result.relativeBase,
+        );
         break;
     }
   }

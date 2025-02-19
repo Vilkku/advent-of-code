@@ -16,12 +16,14 @@ describe("run", () => {
       30, 1, 1, 4, 2, 5, 6, 0, 99,
     ]);
   });
+
+  test("day 5", () => {
+    expect(run([1002, 4, 3, 4, 33]).memory).toMatchObject([1002, 4, 3, 4, 99]);
+  });
 });
 
 describe("runUntilCompletion", () => {
   test("day 5", () => {
-    expect(run([1002, 4, 3, 4, 33]).memory).toMatchObject([1002, 4, 3, 4, 99]);
-
     const inputIsEqualTo8Pos = [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
     expect(runUntilCompletion(inputIsEqualTo8Pos, 8).output[0]).toBe(1);
     expect(runUntilCompletion(inputIsEqualTo8Pos, 2).output[0]).toBe(0);
@@ -54,5 +56,26 @@ describe("runUntilCompletion", () => {
     expect(runUntilCompletion(inputRelationTo8, 6).output[0]).toBe(999);
     expect(runUntilCompletion(inputRelationTo8, 8).output[0]).toBe(1000);
     expect(runUntilCompletion(inputRelationTo8, 10).output[0]).toBe(1001);
+  });
+
+  test("day 9", () => {
+    expect(
+      runUntilCompletion([
+        109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0,
+        99,
+      ]).output,
+    ).toMatchObject([
+      109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+    ]);
+
+    expect(
+      runUntilCompletion([
+        1102, 34915192, 34915192, 7, 4, 7, 99, 0,
+      ]).output[0].toString(),
+    ).toHaveLength(16);
+
+    expect(runUntilCompletion([104, 1125899906842624, 99]).output[0]).toBe(
+      1125899906842624,
+    );
   });
 });

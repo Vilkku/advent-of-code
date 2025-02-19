@@ -50,6 +50,7 @@ test("getInstructionResult", () => {
         ],
       },
       [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50],
+      0,
     ),
   ).toMatchObject({ address: 3, value: 70 });
 
@@ -64,6 +65,7 @@ test("getInstructionResult", () => {
         ],
       },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
+      0,
     ),
   ).toMatchObject({ address: 0, value: 3500 });
 
@@ -78,6 +80,7 @@ test("getInstructionResult", () => {
         ],
       },
       [1, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50],
+      0,
     ),
   ).toMatchObject({ address: 0, value: 3500 });
 
@@ -92,6 +95,7 @@ test("getInstructionResult", () => {
         ],
       },
       [1002, 4, 3, 4, 33],
+      0,
     ),
   ).toMatchObject({ address: 4, value: 99 });
 });

@@ -1,4 +1,4 @@
-export type ParameterMode = "position" | "immediate";
+export type ParameterMode = "position" | "immediate" | "relative";
 
 export interface Parameter {
   value: number;
@@ -45,6 +45,11 @@ export interface EqualsInstruction {
   parameters: [Parameter, Parameter, Parameter];
 }
 
+export interface AdjustRelativeBaseInstruction {
+  type: "adjust-relative-base";
+  parameters: [Parameter];
+}
+
 export type Instruction =
   | AddInstruction
   | MultiplyInstruction
@@ -53,7 +58,8 @@ export type Instruction =
   | JumpIfTrueInstruction
   | JumpIfFalseInstruction
   | LessThanInstruction
-  | EqualsInstruction;
+  | EqualsInstruction
+  | AdjustRelativeBaseInstruction;
 
 export type InstructionResult =
   | {
@@ -63,25 +69,26 @@ export type InstructionResult =
     }
   | { type: "set-output"; value: number }
   | { type: "set-pointer"; value: number }
+  | { type: "update-relative-base"; value: number }
   | { type: "nothing" };
 
-export interface DoneRunStatus {
+interface BaseRunStatus {
+  memory: number[];
+  pointer: number;
+  relativeBase: number;
+}
+
+export interface DoneRunStatus extends BaseRunStatus {
   status: "done";
-  memory: number[];
-  pointer: number;
 }
 
-export interface InputRunStatus {
+export interface InputRunStatus extends BaseRunStatus {
   status: "input";
-  memory: number[];
-  pointer: number;
 }
 
-export interface OutputRunStatus {
+export interface OutputRunStatus extends BaseRunStatus {
   status: "output";
-  memory: number[];
   output: number;
-  pointer: number;
 }
 
 export type RunStatus = DoneRunStatus | InputRunStatus | OutputRunStatus;
