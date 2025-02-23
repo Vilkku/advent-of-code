@@ -1,14 +1,9 @@
 import { getInput, toInt } from "../util/input.ts";
 import { styleText } from "node:util";
-import { useBenchmark } from "../util/benchmark.ts";
 
 const input = (await getInput(import.meta.dir, "input.txt"))
   .split("")
   .map(toInt);
-
-const benchmark = useBenchmark();
-
-benchmark.start("Part 1");
 
 const width = 25;
 const height = 6;
@@ -39,9 +34,6 @@ console.log(
   "Part 1",
   digitsInLayerWithFewestZeroes[1] * digitsInLayerWithFewestZeroes[2],
 );
-
-benchmark.print("Part 1");
-benchmark.start("Part 2");
 
 const px = {
   black: 0,
@@ -87,6 +79,3 @@ image.forEach((row) => {
   );
 });
 console.log(`+${"-".repeat(printedWidth)}+`);
-
-benchmark.print("Part 2");
-benchmark.printGlobal();

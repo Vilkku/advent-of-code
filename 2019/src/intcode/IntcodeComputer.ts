@@ -4,11 +4,10 @@ import { run } from "./run.ts";
 export class IntcodeComputer {
   memory: number[];
   pointer: number = 0;
-  inputQueue: number[] = [];
+  private inputQueue: number[] = [];
 
-  constructor(initialMemory: number[], initialInputs: number[]) {
+  constructor(initialMemory: number[]) {
     this.memory = [...initialMemory];
-    this.inputQueue = [...initialInputs];
   }
 
   run(): RunStatus {
@@ -18,5 +17,9 @@ export class IntcodeComputer {
     this.pointer = result.pointer;
 
     return result;
+  }
+
+  enqueueInput(input: number): void {
+    this.inputQueue.push(input);
   }
 }

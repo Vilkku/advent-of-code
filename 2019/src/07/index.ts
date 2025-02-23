@@ -1,19 +1,15 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
-import { useBenchmark } from "../util/benchmark.ts";
 import { getMaxThrusterSignal } from "./funcs.ts";
+import { expect } from "bun:test";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
 );
 
-const benchmark = useBenchmark();
+const part1Answer = getMaxThrusterSignal(initialMemory, 0, 4);
+console.log("Part 1", part1Answer);
+expect(part1Answer).toBe(87138);
 
-benchmark.start("Part 1");
-console.log("Part 1", getMaxThrusterSignal(initialMemory, 0, 4));
-benchmark.print("Part 1");
-
-benchmark.start("Part 2");
-console.log("Part 2", getMaxThrusterSignal(initialMemory, 5, 9));
-benchmark.print("Part 2");
-
-benchmark.printGlobal();
+const part2Answer = getMaxThrusterSignal(initialMemory, 5, 9);
+console.log("Part 2", part2Answer);
+expect(part2Answer).toBe(17279674);

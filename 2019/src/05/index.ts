@@ -1,17 +1,17 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
-import { run, runUntilCompletion } from "../intcode/run.ts";
-import { benchmark_deprecated } from "../util/benchmark.ts";
+import { runUntilCompletion } from "../intcode/run.ts";
+import { expect } from "bun:test";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
 );
 
-benchmark_deprecated(() => {
-  const { output: part1DiagCodes } = runUntilCompletion(initialMemory, 1);
-  console.log("Part 1", part1DiagCodes[part1DiagCodes.length - 1]);
-}, "Part 1");
+const { output: part1DiagCodes } = runUntilCompletion(initialMemory, 1);
+const part1Answer = part1DiagCodes[part1DiagCodes.length - 1];
+console.log("Part 1", part1Answer);
+expect(part1Answer).toBe(15259545);
 
-benchmark_deprecated(() => {
-  const { output: part2DiagCodes } = runUntilCompletion(initialMemory, 5);
-  console.log("Part 2", part2DiagCodes[0]);
-}, "Part 2");
+const { output: part2DiagCodes } = runUntilCompletion(initialMemory, 5);
+const part2Answer = part2DiagCodes[0];
+console.log("Part 2", part2Answer);
+expect(part2Answer).toBe(7616021);

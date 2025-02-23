@@ -1,27 +1,22 @@
-import { benchmark_deprecated } from "../util/benchmark.ts";
 import { isPasswordValid } from "./funcs.ts";
 
 const start = 172930;
 const end = 683082;
 
-benchmark_deprecated(() => {
-  const validPasswords: number[] = [];
-  for (let i = start; i <= end; i++) {
-    if (isPasswordValid(i)) {
-      validPasswords.push(i);
-    }
+const validPasswords: number[] = [];
+for (let i = start; i <= end; i++) {
+  if (isPasswordValid(i)) {
+    validPasswords.push(i);
   }
+}
 
-  console.log("Part 1", validPasswords.length);
-}, "Part 1");
+console.log("Part 1", validPasswords.length);
 
-benchmark_deprecated(() => {
-  const validPasswordsWithExactlyTwoAdjacent: number[] = [];
-  for (let i = start; i <= end; i++) {
-    if (isPasswordValid(i, { exactlyTwoAdjacentDigits: true })) {
-      validPasswordsWithExactlyTwoAdjacent.push(i);
-    }
+const validPasswordsWithExactlyTwoAdjacent: number[] = [];
+for (let i = start; i <= end; i++) {
+  if (isPasswordValid(i, { exactlyTwoAdjacentDigits: true })) {
+    validPasswordsWithExactlyTwoAdjacent.push(i);
   }
+}
 
-  console.log("Part 2", validPasswordsWithExactlyTwoAdjacent.length);
-}, "Part 2");
+console.log("Part 2", validPasswordsWithExactlyTwoAdjacent.length);

@@ -46,11 +46,21 @@ export function getMaxThrusterSignal(
   const permutations = generatePermutations(minSetting, maxSetting);
 
   const results = permutations.map(([a, b, c, d, e]) => {
-    const aComputer = new IntcodeComputer(initialMemory, [a, 0]);
-    const bComputer = new IntcodeComputer(initialMemory, [b]);
-    const cComputer = new IntcodeComputer(initialMemory, [c]);
-    const dComputer = new IntcodeComputer(initialMemory, [d]);
-    const eComputer = new IntcodeComputer(initialMemory, [e]);
+    const aComputer = new IntcodeComputer(initialMemory);
+    aComputer.enqueueInput(a);
+    aComputer.enqueueInput(0);
+
+    const bComputer = new IntcodeComputer(initialMemory);
+    bComputer.enqueueInput(b);
+
+    const cComputer = new IntcodeComputer(initialMemory);
+    cComputer.enqueueInput(c);
+
+    const dComputer = new IntcodeComputer(initialMemory);
+    dComputer.enqueueInput(d);
+
+    const eComputer = new IntcodeComputer(initialMemory);
+    eComputer.enqueueInput(e);
 
     let done = false;
     let lastEOutput = 0;
@@ -60,7 +70,7 @@ export function getMaxThrusterSignal(
 
       switch (aResult.status) {
         case "output":
-          bComputer.inputQueue.push(aResult.output);
+          bComputer.enqueueInput(aResult.output);
           break;
         case "done":
           done = true;
@@ -73,7 +83,7 @@ export function getMaxThrusterSignal(
 
       switch (bResult.status) {
         case "output":
-          cComputer.inputQueue.push(bResult.output);
+          cComputer.enqueueInput(bResult.output);
           break;
         case "done":
           done = true;
@@ -86,7 +96,7 @@ export function getMaxThrusterSignal(
 
       switch (cResult.status) {
         case "output":
-          dComputer.inputQueue.push(cResult.output);
+          dComputer.enqueueInput(cResult.output);
           break;
         case "done":
           done = true;
@@ -99,7 +109,7 @@ export function getMaxThrusterSignal(
 
       switch (dResult.status) {
         case "output":
-          eComputer.inputQueue.push(dResult.output);
+          eComputer.enqueueInput(dResult.output);
           break;
         case "done":
           done = true;
@@ -113,7 +123,7 @@ export function getMaxThrusterSignal(
       switch (eResult.status) {
         case "output":
           lastEOutput = eResult.output;
-          aComputer.inputQueue.push(eResult.output);
+          aComputer.enqueueInput(eResult.output);
           break;
         case "done":
           done = true;
