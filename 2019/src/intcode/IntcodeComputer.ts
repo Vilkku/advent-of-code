@@ -1,5 +1,4 @@
 import type { RunStatus } from "./types.ts";
-import { run } from "./runUntilCompletion.ts";
 import { readFromMemory } from "./readFromMemory.ts";
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
 
@@ -48,6 +47,7 @@ export class IntcodeComputer {
           break;
         case "set-output":
           this.pointer += instruction.parameters.length + 1;
+          this.outputs.push(instructionResult.value);
           return {
             status: "output",
             memory: this.memory,
@@ -80,5 +80,33 @@ export class IntcodeComputer {
 
   enqueueInput(input: number): void {
     this.inputQueue.push(input);
+  }
+
+  static createAndRun(
+    initialMemory: number[],
+    input?: number,
+  ): IntcodeComputer {
+    const computer = new IntcodeComputer(initialMemory);
+
+    const output: number[] = [];
+
+    if (typeof input !== "undefined") {
+      computer.enqueueInput(input);
+    }
+
+    let result = computer.run();
+
+    while (result.status !== "done") {
+      switch (result.status) {
+        case "input":
+          throw new Error("Computer requires more input");
+        case "output":
+          output.push(result.output);
+          result = computer.run();
+          break;
+      }
+    }
+
+    return computer;
   }
 }

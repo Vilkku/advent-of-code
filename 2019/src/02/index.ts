@@ -1,7 +1,6 @@
+import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import { expect } from "bun:test";
-
-import { runUntilCompletion } from "../intcode/runUntilCompletion.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
@@ -11,7 +10,7 @@ const part1InitialMemory = [...initialMemory];
 part1InitialMemory[1] = 12;
 part1InitialMemory[2] = 2;
 
-const part1Memory = runUntilCompletion(part1InitialMemory);
+const part1Memory = IntcodeComputer.createAndRun(part1InitialMemory);
 
 const part1Answer = part1Memory.memory[0];
 console.log("Part 1", part1Answer);
@@ -24,7 +23,7 @@ const getPart2Answer = (initialMemory: number[]) => {
       part2InitialMemory[1] = noun;
       part2InitialMemory[2] = verb;
 
-      const part2Memory = runUntilCompletion(part2InitialMemory);
+      const part2Memory = IntcodeComputer.createAndRun(part2InitialMemory);
 
       if (part2Memory.memory[0] === 19690720) {
         return 100 * noun + verb;
