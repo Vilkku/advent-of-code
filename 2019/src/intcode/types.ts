@@ -72,23 +72,26 @@ export type InstructionResult =
   | { type: "update-relative-base"; value: number }
   | { type: "nothing" };
 
-interface BaseRunStatus {
+interface IntcodeComputerStatusBase {
   memory: number[];
   pointer: number;
   relativeBase: number;
 }
 
-export interface DoneRunStatus extends BaseRunStatus {
+interface IntcodeComputerStatusDone extends IntcodeComputerStatusBase {
   status: "done";
 }
 
-export interface InputRunStatus extends BaseRunStatus {
+interface IntcodeComputerStatusInput extends IntcodeComputerStatusBase {
   status: "input";
 }
 
-export interface OutputRunStatus extends BaseRunStatus {
+interface IntcodeComputerStatusOutput extends IntcodeComputerStatusBase {
   status: "output";
   output: number;
 }
 
-export type RunStatus = DoneRunStatus | InputRunStatus | OutputRunStatus;
+export type IntcodeComputerStatus =
+  | IntcodeComputerStatusDone
+  | IntcodeComputerStatusInput
+  | IntcodeComputerStatusOutput;

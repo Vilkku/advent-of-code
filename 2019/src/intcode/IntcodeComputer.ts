@@ -1,4 +1,4 @@
-import type { RunStatus } from "./types.ts";
+import type { IntcodeComputerStatus } from "./types.ts";
 import { readFromMemory } from "./readFromMemory.ts";
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
 
@@ -13,7 +13,7 @@ export class IntcodeComputer {
     this.memory = [...initialMemory];
   }
 
-  run(): RunStatus {
+  run(): IntcodeComputerStatus {
     const OPCODE_HALT = 99;
 
     while (readFromMemory(this.memory, this.pointer) !== OPCODE_HALT) {
