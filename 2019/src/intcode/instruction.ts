@@ -19,6 +19,8 @@ import type {
   OutputInstruction,
   Parameter,
   ParameterMode,
+  RequestInputInstructionResult,
+  UpdateValueInstructionResult,
 } from "./types.ts";
 import { readFromMemory } from "./readFromMemory.ts";
 
@@ -68,121 +70,121 @@ export const parseInstruction = (
   }
 };
 
+const parseInstructionWithParameters = <T extends Instruction>(
+  type: T["type"],
+  pointer: number,
+  parameterModes: ParameterMode[],
+  memory: number[],
+  parameterCount: number,
+): T =>
+  ({
+    type,
+    parameters: generateParameters(
+      pointer,
+      memory,
+      parameterModes,
+      parameterCount,
+    ) as T["parameters"],
+  }) as T;
+
 const parseAddInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): AddInstruction => ({
-  type: "add",
-  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
-    Parameter,
-    Parameter,
-    Parameter,
-  ],
-});
+): AddInstruction =>
+  parseInstructionWithParameters("add", pointer, parameterModes, memory, 3);
 
 const parseMultiplyInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): MultiplyInstruction => ({
-  type: "multiply",
-  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
-    Parameter,
-    Parameter,
-    Parameter,
-  ],
-});
+): MultiplyInstruction =>
+  parseInstructionWithParameters(
+    "multiply",
+    pointer,
+    parameterModes,
+    memory,
+    3,
+  );
 
 const parseInputInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): InputInstruction => ({
-  type: "input",
-  parameters: generateParameters(pointer, memory, parameterModes, 1) as [
-    Parameter,
-  ],
-});
+): InputInstruction =>
+  parseInstructionWithParameters("input", pointer, parameterModes, memory, 1);
 
 const parseOutputInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): OutputInstruction => ({
-  type: "output",
-  parameters: generateParameters(pointer, memory, parameterModes, 1) as [
-    Parameter,
-  ],
-});
+): OutputInstruction =>
+  parseInstructionWithParameters("output", pointer, parameterModes, memory, 1);
 
 const parseJumpIfTrueInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): JumpIfTrueInstruction => ({
-  type: "jump-if-true",
-  parameters: generateParameters(pointer, memory, parameterModes, 2) as [
-    Parameter,
-    Parameter,
-  ],
-});
+): JumpIfTrueInstruction =>
+  parseInstructionWithParameters(
+    "jump-if-true",
+    pointer,
+    parameterModes,
+    memory,
+    2,
+  );
 
 const parseJumpIfFalseInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): JumpIfFalseInstruction => ({
-  type: "jump-if-false",
-  parameters: generateParameters(pointer, memory, parameterModes, 2) as [
-    Parameter,
-    Parameter,
-  ],
-});
+): JumpIfFalseInstruction =>
+  parseInstructionWithParameters(
+    "jump-if-false",
+    pointer,
+    parameterModes,
+    memory,
+    2,
+  );
 
 const parseLessThanInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): LessThanInstruction => ({
-  type: "less-than",
-  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
-    Parameter,
-    Parameter,
-    Parameter,
-  ],
-});
+): LessThanInstruction =>
+  parseInstructionWithParameters(
+    "less-than",
+    pointer,
+    parameterModes,
+    memory,
+    3,
+  );
 
 const parseEqualsInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): EqualsInstruction => ({
-  type: "equals",
-  parameters: generateParameters(pointer, memory, parameterModes, 3) as [
-    Parameter,
-    Parameter,
-    Parameter,
-  ],
-});
+): EqualsInstruction =>
+  parseInstructionWithParameters("equals", pointer, parameterModes, memory, 3);
 
 const parseAdjustRelativeBaseInstruction = (
   pointer: number,
   parameterModes: ParameterMode[],
   memory: number[],
-): AdjustRelativeBaseInstruction => ({
-  type: "adjust-relative-base",
-  parameters: generateParameters(pointer, memory, parameterModes, 1) as [
-    Parameter,
-  ],
-});
+): AdjustRelativeBaseInstruction =>
+  parseInstructionWithParameters(
+    "adjust-relative-base",
+    pointer,
+    parameterModes,
+    memory,
+    1,
+  );
 
-export const getInstructionResult = (
-  instruction: Instruction,
+export function getInstructionResult(
+  instruction: Exclude<Instruction, InputInstruction>,
   memory: number[],
   relativeBase: number,
-  input?: number,
-): InstructionResult => {
+): InstructionResult {
   const { type, parameters } = instruction;
 
   switch (type) {
@@ -201,16 +203,6 @@ export const getInstructionResult = (
         value:
           getParameterValueFromMemory(parameters[0], memory, relativeBase) *
           getParameterValueFromMemory(parameters[1], memory, relativeBase),
-      };
-    case "input":
-      if (typeof input === "undefined") {
-        throw new Error("Missing input");
-      }
-
-      return {
-        type: "update-value",
-        address: getParameterValue(parameters[0], relativeBase),
-        value: input,
       };
     case "output":
       return {
@@ -273,4 +265,22 @@ export const getInstructionResult = (
         value: getParameterValueFromMemory(parameters[0], memory, relativeBase),
       };
   }
-};
+}
+
+export function getInputInstructionResult(
+  instruction: InputInstruction,
+  relativeBase: number,
+  input: number | undefined,
+): InstructionResult {
+  const { parameters } = instruction;
+
+  if (typeof input === "undefined") {
+    return { type: "request-input" };
+  }
+
+  return {
+    type: "update-value",
+    address: getParameterValue(parameters[0], relativeBase),
+    value: input,
+  };
+}

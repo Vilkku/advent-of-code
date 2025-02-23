@@ -67,26 +67,21 @@ export type InstructionResult =
       address: number;
       value: number;
     }
+  | { type: "request-input" }
   | { type: "set-output"; value: number }
   | { type: "set-pointer"; value: number }
   | { type: "update-relative-base"; value: number }
   | { type: "nothing" };
 
-interface IntcodeComputerStatusBase {
-  memory: number[];
-  pointer: number;
-  relativeBase: number;
-}
-
-interface IntcodeComputerStatusDone extends IntcodeComputerStatusBase {
+interface IntcodeComputerStatusDone {
   status: "done";
 }
 
-interface IntcodeComputerStatusInput extends IntcodeComputerStatusBase {
+interface IntcodeComputerStatusInput {
   status: "input";
 }
 
-interface IntcodeComputerStatusOutput extends IntcodeComputerStatusBase {
+interface IntcodeComputerStatusOutput {
   status: "output";
   output: number;
 }

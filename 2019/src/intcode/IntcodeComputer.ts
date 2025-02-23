@@ -1,6 +1,10 @@
 import type { IntcodeComputerStatus } from "./types.ts";
 import { readFromMemory } from "./readFromMemory.ts";
-import { getInstructionResult, parseInstruction } from "./instruction.ts";
+import {
+  getInputInstructionResult,
+  getInstructionResult,
+  parseInstruction,
+} from "./instruction.ts";
 
 export class IntcodeComputer {
   memory: number[];
@@ -19,40 +23,29 @@ export class IntcodeComputer {
     while (readFromMemory(this.memory, this.pointer) !== OPCODE_HALT) {
       const instruction = parseInstruction(this.pointer, this.memory);
 
-      let input;
-      if (instruction.type === "input") {
-        input = this.inputQueue.shift();
-
-        if (typeof input === "undefined") {
-          return {
-            status: "input",
-            memory: this.memory,
-            pointer: this.pointer,
-            relativeBase: this.relativeBase,
-          };
-        }
-      }
-
-      const instructionResult = getInstructionResult(
-        instruction,
-        this.memory,
-        this.relativeBase,
-        input,
-      );
+      const instructionResult =
+        instruction.type === "input"
+          ? getInputInstructionResult(
+              instruction,
+              this.relativeBase,
+              this.inputQueue.shift(),
+            )
+          : getInstructionResult(instruction, this.memory, this.relativeBase);
 
       switch (instructionResult.type) {
         case "update-value":
           this.memory[instructionResult.address] = instructionResult.value;
           this.pointer += instruction.parameters.length + 1;
           break;
+        case "request-input":
+          return {
+            status: "input",
+          };
         case "set-output":
           this.pointer += instruction.parameters.length + 1;
           this.outputs.push(instructionResult.value);
           return {
             status: "output",
-            memory: this.memory,
-            pointer: this.pointer,
-            relativeBase: this.relativeBase,
             output: instructionResult.value,
           };
         case "set-pointer":
@@ -72,9 +65,6 @@ export class IntcodeComputer {
 
     return {
       status: "done",
-      memory: this.memory,
-      pointer: this.pointer,
-      relativeBase: this.relativeBase,
     };
   }
 
