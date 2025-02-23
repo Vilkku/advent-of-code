@@ -1,5 +1,5 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
-import { runUntilCompletion } from "../intcode/run.ts";
+import { runUntilCompletion } from "../intcode/runUntilCompletion.ts";
 import { expect } from "bun:test";
 
 const initialMemory = inputToIntcodeComputerMemory(

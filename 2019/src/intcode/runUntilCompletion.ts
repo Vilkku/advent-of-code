@@ -1,6 +1,7 @@
 import { getInstructionResult, parseInstruction } from "./instruction.ts";
 import type { RunStatus } from "./types.ts";
 import { readFromMemory } from "./readFromMemory.ts";
+import { IntcodeComputer } from "./IntcodeComputer.ts";
 
 const OPCODE_HALT = 99;
 export function run(
@@ -67,29 +68,23 @@ export function runUntilCompletion(
   initialMemory: number[],
   input?: number,
 ): { memory: number[]; output: number[] } {
-  const output: number[] = [];
-  const inputArray = typeof input !== "undefined" ? [input] : [];
+  const computer = new IntcodeComputer(initialMemory);
 
-  let result = run(initialMemory, inputArray);
+  const output: number[] = [];
+
+  if (typeof input !== "undefined") {
+    computer.enqueueInput(input);
+  }
+
+  let result = computer.run();
 
   while (result.status !== "done") {
     switch (result.status) {
       case "input":
-        result = run(
-          result.memory,
-          inputArray,
-          result.pointer,
-          result.relativeBase,
-        );
-        break;
+        throw new Error("Computer requires more input");
       case "output":
         output.push(result.output);
-        result = run(
-          result.memory,
-          inputArray,
-          result.pointer,
-          result.relativeBase,
-        );
+        result = computer.run();
         break;
     }
   }

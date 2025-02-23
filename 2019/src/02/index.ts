@@ -1,7 +1,7 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import { expect } from "bun:test";
 
-import { runUntilCompletion } from "../intcode/run.ts";
+import { runUntilCompletion } from "../intcode/runUntilCompletion.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
@@ -14,7 +14,6 @@ part1InitialMemory[2] = 2;
 const part1Memory = runUntilCompletion(part1InitialMemory);
 
 const part1Answer = part1Memory.memory[0];
-console.log(part1Memory);
 console.log("Part 1", part1Answer);
 expect(part1Answer).toBe(2692315);
 
