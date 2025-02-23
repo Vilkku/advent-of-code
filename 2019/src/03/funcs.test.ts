@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
 import {
+  type Path,
   findIntersections,
   getClosestDistance,
   getFewestSteps,
   inputRowToInstructions,
   instructionsToPath,
-  type Path,
 } from "./funcs";
 
 const path1: Path = {

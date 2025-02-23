@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import {
-  getOrbitTree,
-  getOrbitCount,
-  getParents,
   getClosestCommonParent,
+  getOrbitCount,
+  getOrbitTree,
+  getParents,
   getStepsFromAtoB,
 } from "./funcs.ts";
 import { inputToRows } from "../util/input.ts";
