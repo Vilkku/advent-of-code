@@ -88,8 +88,6 @@ export class IntcodeComputer {
   ): IntcodeComputer {
     const computer = new IntcodeComputer(initialMemory);
 
-    const output: number[] = [];
-
     if (typeof input !== "undefined") {
       computer.enqueueInput(input);
     }
@@ -101,7 +99,6 @@ export class IntcodeComputer {
         case "input":
           throw new Error("Computer requires more input");
         case "output":
-          output.push(result.output);
           result = computer.run();
           break;
       }
