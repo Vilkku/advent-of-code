@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runUntilCompletion } from "./runUntilCompletion.ts";
+import { runUntilCompletion } from "../runUntilCompletion.ts";
 
 describe("runUntilCompletion", () => {
   test("day 2", () => {
