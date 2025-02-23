@@ -17,10 +17,7 @@ import type {
   LessThanInstruction,
   MultiplyInstruction,
   OutputInstruction,
-  Parameter,
   ParameterMode,
-  RequestInputInstructionResult,
-  UpdateValueInstructionResult,
 } from "./types.ts";
 import { readFromMemory } from "./readFromMemory.ts";
 
