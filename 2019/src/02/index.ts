@@ -11,9 +11,10 @@ const part1InitialMemory = [...initialMemory];
 part1InitialMemory[1] = 12;
 part1InitialMemory[2] = 2;
 
-const part1Memory = runUntilCompletion(initialMemory);
+const part1Memory = runUntilCompletion(part1InitialMemory);
 
 const part1Answer = part1Memory.memory[0];
+console.log(part1Memory);
 console.log("Part 1", part1Answer);
 expect(part1Answer).toBe(2692315);
 
