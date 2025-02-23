@@ -1,12 +1,15 @@
 export const useBenchmark = () => {
-  const start = performance.now();
-  let prev = start;
+  let current = performance.now();
 
-  const print = (label: string): void => {
-    const now = performance.now();
-    console.log(`${label}: Took ${now - prev}ms`);
-    prev = now;
+  const reset = (): void => {
+    current = performance.now();
   };
 
-  return { print };
+  const get = (): void => {
+    const now = performance.now();
+    console.log(`Took ${now - current}ms`);
+    current = now;
+  };
+
+  return { reset, get };
 };
