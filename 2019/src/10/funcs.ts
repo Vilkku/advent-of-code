@@ -65,13 +65,16 @@ export function getSuitableLocationForBase(map: string[][]): {
 } {
   const asteroidsInLineOfSight = map
     .flatMap((row, y) =>
-      row
-        .filter((point) => point === "#")
-        .map((_point, x) => ({
-          coordinate: [x, y] as [number, number],
-          asteroidsInLineOfSight: getAsteroidsInLineOfSight(x, y, map),
-        })),
+      row.map((point, x) =>
+        point === "#"
+          ? {
+              coordinate: [x, y] as [number, number],
+              asteroidsInLineOfSight: getAsteroidsInLineOfSight(x, y, map),
+            }
+          : undefined,
+      ),
     )
+    .filter((val) => val !== undefined)
     .sort((a, b) => b.asteroidsInLineOfSight - a.asteroidsInLineOfSight);
 
   return asteroidsInLineOfSight[0];
