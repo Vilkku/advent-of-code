@@ -1,50 +1,114 @@
-export function getAsteroidsInLineOfSight(
-  startX: number,
-  startY: number,
+type SlopeMap = Map<number, [number, number][]>;
+
+function getAsteroidSlopes(
+  asteroidX: number,
+  asteroidY: number,
   map: string[][],
-) {
-  if (!map[startY][startX] || map[startY][startX] !== "#") {
-    throw new Error(`[${startX}, ${startY}] is not an asteoroid`);
+): {
+  leftSlopes: SlopeMap;
+  rightSlopes: SlopeMap;
+} {
+  if (!map[asteroidY][asteroidX] || map[asteroidY][asteroidX] !== "#") {
+    throw new Error("Not an asteroid");
   }
 
-  console.log(`Checking [${startX}, ${startY}]`);
+  const leftSlopes: SlopeMap = new Map();
+  const rightSlopes: SlopeMap = new Map();
+  map.forEach((row, y) =>
+    row.forEach((point, x) => {
+      if (point === "#" && !(asteroidX === x && asteroidY === y)) {
+        const slope = (y - asteroidY) / (x - asteroidX);
+        const side = x < asteroidX ? "left" : "right";
 
-  const directions = [
-    [-1, -1],
-    [0, -1],
-    [1, -1],
-    [-1, 0],
-    [1, 0],
-    [-1, 1],
-    [0, 1],
-    [1, 1],
-  ];
+        const slopes = side === "left" ? leftSlopes : rightSlopes;
 
-  let distance = 1;
-  while (distance <= map.length) {
-    console.log(`Distance ${distance}`);
+        if (!slopes.has(slope)) {
+          slopes.set(slope, []);
+        }
 
-    for (const [dx, dy] of directions) {
-      const x = startX + dx * distance;
-      const y = startY + dy * distance;
-
-      if (
-        x < 0 ||
-        y < 0 ||
-        x >= map[0].length ||
-        y >= map.length ||
-        (x === startX && y === startY)
-      ) {
-        continue;
+        slopes.get(slope)!.push([x, y]);
       }
+    }),
+  );
 
-      console.log(`Scanning [${x}, ${y}]`);
+  const getDistance = ([x, y]: [number, number]): number =>
+    Math.abs(x - asteroidX) + Math.abs(y - asteroidY);
 
-      if (map[y][x] === "#") {
-        console.log(`Asteoroid found at [${x}, ${y}]`);
+  leftSlopes
+    .values()
+    .forEach((coords) =>
+      coords.sort((a, b) => getDistance(a) - getDistance(b)),
+    );
+
+  rightSlopes
+    .values()
+    .forEach((coords) =>
+      coords.sort((a, b) => getDistance(a) - getDistance(b)),
+    );
+
+  return { leftSlopes, rightSlopes };
+}
+
+export function getAsteroidsInLineOfSight(
+  x: number,
+  y: number,
+  map: string[][],
+): number {
+  const { leftSlopes, rightSlopes } = getAsteroidSlopes(x, y, map);
+
+  return leftSlopes.size + rightSlopes.size;
+}
+
+export function getSuitableLocationForBase(map: string[][]): {
+  coordinate: [number, number];
+  asteroidsInLineOfSight: number;
+} {
+  const asteroidsInLineOfSight = map
+    .flatMap((row, y) =>
+      row.map((point, x) =>
+        point === "#"
+          ? {
+              coordinate: [x, y] as [number, number],
+              asteroidsInLineOfSight: getAsteroidsInLineOfSight(x, y, map),
+            }
+          : undefined,
+      ),
+    )
+    .filter((val) => val !== undefined)
+    .sort((a, b) => b.asteroidsInLineOfSight - a.asteroidsInLineOfSight);
+
+  return asteroidsInLineOfSight[0];
+}
+
+export function executeCompleteVaporizationByGiantLaser(
+  [x, y]: [number, number],
+  map: string[][],
+): [number, number][] {
+  const { leftSlopes, rightSlopes } = getAsteroidSlopes(x, y, map);
+
+  const rightSlopeKeysInOrder = [...rightSlopes.keys()].sort((a, b) => a - b);
+  const leftSlopeKeysInOrder = [...leftSlopes.keys()].sort((a, b) => a - b);
+  const blastedAsteroids: [number, number][] = [];
+
+  const vaporizationComplete = () =>
+    rightSlopes.values().every((value) => value.length === 0) &&
+    leftSlopes.values().every((value) => value.length === 0);
+
+  while (!vaporizationComplete()) {
+    rightSlopeKeysInOrder.forEach((key) => {
+      const coordinate = rightSlopes.get(key)!.shift();
+      if (coordinate) {
+        blastedAsteroids.push(coordinate);
       }
-    }
+    });
 
-    distance++;
+    leftSlopeKeysInOrder.forEach((key) => {
+      const coordinate = leftSlopes.get(key)!.shift();
+      if (coordinate) {
+        blastedAsteroids.push(coordinate);
+      }
+    });
   }
+
+  return blastedAsteroids;
 }
