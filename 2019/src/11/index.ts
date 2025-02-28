@@ -7,6 +7,7 @@ import { getSmallestAndLargestKeysInRecord, paintSquares } from "./funcs.ts";
 import { styleText } from "node:util";
 import { expect } from "bun:test";
 import { useBenchmark } from "../util/benchmark.ts";
+import { print2DArray } from "../util/print2DArray.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
@@ -45,30 +46,16 @@ Object.values(mapStartingOnWhite).forEach((row) => {
   }
 });
 
-const width = largestX + 1 - smallestX;
-const pxStr = "██";
-const printedWidth = width * pxStr.length;
-
-console.log(
-  `+${" Part 2 ".padStart(printedWidth / 2 + 4, "-").padEnd(printedWidth, "-")}+`,
-);
+const image: number[][] = [];
 for (let y = smallestY; y <= largestY; y++) {
   const row = [];
 
   for (let x = smallestX; x <= largestX; x++) {
-    const px = mapStartingOnWhite[y]?.[x] ?? 0;
-
-    switch (px) {
-      case 0:
-        row.push(styleText("black", pxStr));
-        break;
-      case 1:
-        row.push(styleText("white", pxStr));
-        break;
-    }
+    row.push(mapStartingOnWhite[y]?.[x] ?? 0);
   }
 
-  console.log(`|${row.join("")}|`);
+  image.push(row);
 }
-console.log(`+${"-".repeat(printedWidth)}+`);
+
+print2DArray(image, "Part 2");
 benchmark.get();

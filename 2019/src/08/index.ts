@@ -1,5 +1,6 @@
 import { getInput, toInt } from "../util/input.ts";
 import { styleText } from "node:util";
+import { print2DArray } from "../util/print2DArray.ts";
 
 const input = (await getInput(import.meta.dir, "input.txt"))
   .split("")
@@ -54,28 +55,4 @@ for (let y = 0; y < height; y++) {
   }
 }
 
-const pxStr = "██";
-const printedWidth = width * pxStr.length;
-
-console.log(
-  `+${" Part 2 ".padStart(printedWidth / 2 + 4, "-").padEnd(printedWidth, "-")}+`,
-);
-image.forEach((row) => {
-  console.log(
-    "|" +
-      row
-        .map((pixel) => {
-          switch (pixel) {
-            case px.black:
-              return styleText("black", pxStr);
-            case px.white:
-              return styleText("white", pxStr);
-            default:
-              throw new Error(`Unexpected pixel "${pixel}"`);
-          }
-        })
-        .join("") +
-      "|",
-  );
-});
-console.log(`+${"-".repeat(printedWidth)}+`);
+print2DArray(image, "Part 2");
