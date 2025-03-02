@@ -18,15 +18,13 @@ function getAsteroidSlopes(
     row.forEach((point, x) => {
       if (point === "#" && !(asteroidX === x && asteroidY === y)) {
         const slope = (y - asteroidY) / (x - asteroidX);
-        const side = x < asteroidX ? "left" : "right";
+        const slopesMap = x < asteroidX ? leftSlopes : rightSlopes;
 
-        const slopes = side === "left" ? leftSlopes : rightSlopes;
-
-        if (!slopes.has(slope)) {
-          slopes.set(slope, []);
+        if (!slopesMap.has(slope)) {
+          slopesMap.set(slope, []);
         }
 
-        slopes.get(slope)!.push([x, y]);
+        slopesMap.get(slope)!.push([x, y]);
       }
     }),
   );
