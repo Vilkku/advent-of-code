@@ -1,5 +1,4 @@
 import { getInput, toInt } from "../util/input.ts";
-import { styleText } from "node:util";
 import { print2DArray } from "../util/print2DArray.ts";
 
 const input = (await getInput(import.meta.dir, "input.txt"))

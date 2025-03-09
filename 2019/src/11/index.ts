@@ -1,10 +1,5 @@
-import {
-  getInput,
-  inputToIntcodeComputerMemory,
-  toInt,
-} from "../util/input.ts";
+import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import { getSmallestAndLargestKeysInRecord, paintSquares } from "./funcs.ts";
-import { styleText } from "node:util";
 import { expect } from "bun:test";
 import { useBenchmark } from "../util/benchmark.ts";
 import { print2DArray } from "../util/print2DArray.ts";
