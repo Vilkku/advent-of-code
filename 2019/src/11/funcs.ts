@@ -2,7 +2,7 @@ import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
 import { toInt } from "../util/input.ts";
 
 export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
-  const map: Record<number, Record<number, 0 | 1>> = {};
+  const squares: Record<number, Record<number, 0 | 1>> = {};
   const computer = new IntcodeComputer(initialMemory);
 
   let x = 0;
@@ -22,11 +22,11 @@ export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
           switch (computerStatus.output) {
             case 0:
             case 1:
-              if (!map[y]) {
-                map[y] = {};
+              if (!squares[y]) {
+                squares[y] = {};
               }
 
-              map[y][x] = computerStatus.output;
+              squares[y][x] = computerStatus.output;
               break;
             default:
               throw new Error(
@@ -95,13 +95,13 @@ export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
         computerStatus = computer.run();
         break;
       case "input":
-        computer.enqueueInput(map[y]?.[x] ?? 0);
+        computer.enqueueInput(squares[y]?.[x] ?? 0);
         computerStatus = computer.run();
         break;
     }
   }
 
-  return map;
+  return squares;
 }
 
 export function getSmallestAndLargestKeysInRecord(
