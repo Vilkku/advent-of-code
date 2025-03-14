@@ -51,7 +51,7 @@ function simulateDimensionStep(
 }
 
 export function simulateStep(initialState: MoonMap): MoonMap {
-  let nextState = cloneMoonMap(initialState);
+  let nextState = initialState;
 
   for (let dimension of dimensions) {
     nextState = simulateDimensionStep(nextState, dimension);
@@ -89,13 +89,10 @@ function getDimensionCycle(
   dimension: Dimension,
 ): number {
   function isInitialState(state: MoonMap): boolean {
-    return dimensions.every((dimension) =>
-      state.every(
-        (moon, index) =>
-          moon.position[dimension] ===
-            initialState[index].position[dimension] &&
-          moon.velocity[dimension] === initialState[index].velocity[dimension],
-      ),
+    return state.every(
+      (moon, index) =>
+        moon.position[dimension] === initialState[index].position[dimension] &&
+        moon.velocity[dimension] === initialState[index].velocity[dimension],
     );
   }
 
