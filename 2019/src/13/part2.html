@@ -1,26 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Day 13 Part 2</title>
-  <style>
-      #screen {
-          border: 1px solid black
+  <head>
+    <meta charset="UTF-8" />
+    <title>Day 13 Part 2</title>
+    <style>
+      body {
+        font-family: sans-serif;
       }
-  </style>
-</head>
-<body>
-<h1>Day 13 Part 2</h1>
-<div>Score <span id="score">0</span></div>
-<div>
-  <canvas id="screen" width="1260" height="720"></canvas>
-</div>
-<div><label for="program">Program</label>
-  <div><textarea id="program"></textarea></div>
-</div>
-<div>
-  <button id="run">Run</button>
-</div>
-<script type="module" src="./build/part2.js"></script>
-</body>
+
+      section {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .container {
+        margin: 0 auto;
+        width: 1260px;
+      }
+
+      #score {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .screen-container {
+        position: relative;
+        border: 1px solid black;
+      }
+
+      #you-win {
+        position: absolute;
+        background-color: lightblue;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        font-size: 3rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #screen {
+        margin: 0 auto;
+      }
+
+      #program {
+        width: 50%;
+        height: 100px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <section>
+        <h1>Day 13 Part 2</h1>
+      </section>
+      <section>
+        <b>Score:</b>
+        <div id="score">0</div>
+      </section>
+      <section class="screen-container">
+        <div id="you-win" class="hidden">
+          <b>🎉 You win! 🎉</b>
+        </div>
+        <canvas id="screen" width="1260" height="720"></canvas>
+      </section>
+      <section>
+        <button id="autopilot-on" disabled>⏵ Autopilot On</button>
+        <button id="autopilot-off" disabled>⏸ Autopilot Off</button>
+      </section>
+      <section>
+        <label for="program">Program</label>
+        <div><textarea id="program"></textarea></div>
+        <button id="run">Run</button>
+      </section>
+    </div>
+    <script type="module" src="./part2.ts"></script>
+  </body>
 </html>
