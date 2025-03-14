@@ -56,7 +56,7 @@ test("calculateEnergy", () => {
   expect(calculateEnergy(exampleMapAfter10Steps)).toBe(179);
 });
 
-test("simulateUntilDuplicateState", () => {
+test("getStepsRequiredForDuplicateState", () => {
   expect(getStepsRequiredForDuplicateState(exampleMap)).toBe(2772);
 
   const secondExampleMap: MoonMap = [
