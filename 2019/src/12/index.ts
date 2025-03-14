@@ -1,4 +1,11 @@
-import { calculateEnergy, type MoonMap, simulateNSteps } from "./funcs.ts";
+import {
+  calculateEnergy,
+  getStepsRequiredForDuplicateState,
+  type MoonMap,
+  simulateNSteps,
+} from "./funcs.ts";
+import { useBenchmark } from "../util/benchmark.ts";
+import { expect } from "bun:test";
 
 const map: MoonMap = [
   // <x=-7, y=-1, z=6>
@@ -11,7 +18,19 @@ const map: MoonMap = [
   { position: { x: 4, y: -17, z: -12 }, velocity: { x: 0, y: 0, z: 0 } },
 ];
 
-const mapAfter1000Steps = simulateNSteps(map, 1000);
-const energyAfter1000Steps = calculateEnergy(mapAfter1000Steps);
+const benchmark = useBenchmark();
 
-console.log("Part 1", energyAfter1000Steps);
+benchmark.reset();
+const mapAfter1000Steps = simulateNSteps(map, 1000);
+const part1Answer = calculateEnergy(mapAfter1000Steps);
+
+console.log("Part 1", part1Answer);
+benchmark.get();
+expect(part1Answer).toBe(11384);
+
+benchmark.reset();
+const part2Answer = getStepsRequiredForDuplicateState(map);
+
+console.log("Part 2", part2Answer);
+benchmark.get();
+expect(part2Answer).toBe(452582583272768);

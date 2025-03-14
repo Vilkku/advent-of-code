@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
 import {
-  simulateStep,
   type MoonMap,
   simulateNSteps,
   calculateEnergy,
-  simulateUntilDuplicateState,
+  getStepsRequiredForDuplicateState,
+  simulateStep,
 } from "./funcs.ts";
 
 const exampleMap: MoonMap = [
@@ -57,7 +57,7 @@ test("calculateEnergy", () => {
 });
 
 test("simulateUntilDuplicateState", () => {
-  expect(simulateUntilDuplicateState(exampleMap, 2772)).toBe(2772);
+  expect(getStepsRequiredForDuplicateState(exampleMap)).toBe(2772);
 
   const secondExampleMap: MoonMap = [
     // <x=-8, y=-10, z=0>
@@ -70,9 +70,5 @@ test("simulateUntilDuplicateState", () => {
     { position: { x: 9, y: -8, z: -3 }, velocity: { x: 0, y: 0, z: 0 } },
   ];
 
-  /*
-  expect(simulateUntilDuplicateState(secondExampleMap, 4686774924)).toBe(
-    4686774924,
-  );
-   */
+  expect(getStepsRequiredForDuplicateState(secondExampleMap)).toBe(4686774924);
 });
