@@ -1,4 +1,5 @@
 import { lcmN } from "../util/math.ts";
+import { useBenchmark } from "../util/benchmark.ts";
 
 const dimensions = ["x", "y", "z"] as const;
 type Dimension = (typeof dimensions)[number];
@@ -22,7 +23,7 @@ function simulateDimensionStep(
   const nextState = cloneMoonMap(initialState);
 
   for (let i = 0; i < initialState.length; i++) {
-    for (let j = i; j < initialState.length; j++) {
+    for (let j = i + 1; j < initialState.length; j++) {
       if (
         initialState[i].position[dimension] >
         initialState[j].position[dimension]
