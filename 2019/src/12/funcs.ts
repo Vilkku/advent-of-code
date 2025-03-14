@@ -1,5 +1,4 @@
 import { lcmN } from "../util/math.ts";
-import { useBenchmark } from "../util/benchmark.ts";
 
 const dimensions = ["x", "y", "z"] as const;
 type Dimension = (typeof dimensions)[number];
