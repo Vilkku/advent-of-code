@@ -1,6 +1,5 @@
 import { inputToIntcodeComputerMemory } from "../util/input.js";
-import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
-import type { IntcodeComputerStatus } from "../intcode/types.ts";
+import { doAutopilot, run } from "./funcs.ts";
 
 const scoreboard = document.getElementById("score") as HTMLSpanElement;
 const canvas = document.getElementById("screen") as HTMLCanvasElement;
@@ -13,113 +12,99 @@ const autopilotOffButton = document.getElementById(
 const programInput = document.getElementById("program") as HTMLTextAreaElement;
 const runButton = document.getElementById("run") as HTMLButtonElement;
 const youWin = document.getElementById("you-win") as HTMLDivElement;
-
-let computer: IntcodeComputer;
-let computerStatus: IntcodeComputerStatus;
-const pixels: number[][] = [];
-
-let autopilot = false;
-let paddleX = 0;
-let ballX = 0;
+const youLose = document.getElementById("you-lose") as HTMLDivElement;
 
 autopilotOnButton.disabled = true;
 autopilotOffButton.disabled = true;
 youWin.classList.add("hidden");
+youLose.classList.add("hidden");
 
-runButton.addEventListener("click", init);
-autopilotOnButton.addEventListener("click", () => {
+let autopilot = false;
+
+function enableAutopilot() {
   autopilot = true;
-  doAutopilot();
   autopilotOnButton.disabled = true;
   autopilotOffButton.disabled = false;
-});
-autopilotOffButton.addEventListener("click", () => {
+}
+
+function disableAutopilot() {
   autopilot = false;
   autopilotOnButton.disabled = false;
   autopilotOffButton.disabled = true;
-});
+}
 
-function init() {
+autopilotOnButton.addEventListener("click", enableAutopilot);
+autopilotOffButton.addEventListener("click", disableAutopilot);
+
+runButton.addEventListener("click", async () => {
   const initialMemory = inputToIntcodeComputerMemory(programInput.value);
-  computer = new IntcodeComputer(initialMemory);
-  run();
 
-  autopilotOnButton.disabled = false;
-  autopilotOffButton.disabled = true;
+  disableAutopilot();
   youWin.classList.add("hidden");
-}
+  youLose.classList.add("hidden");
+  scoreboard.textContent = "0";
 
-function run() {
-  computerStatus = computer.run();
-  let currentOutput = [];
-
-  while (computerStatus.status === "output") {
-    currentOutput.push(computerStatus.output);
-
-    if (currentOutput.length === 3) {
-      const x = currentOutput[0];
-      const y = currentOutput[1];
-      const value = currentOutput[2];
-
-      if (x === -1 && y === 0) {
-        scoreboard.textContent = value.toString();
+  const { state } = await run(initialMemory, {
+    onScoreChange: (score) => {
+      scoreboard.textContent = score.toString();
+    },
+    onDisplayChange: (pixels): Promise<void> => {
+      return new Promise((resolve) =>
+        setTimeout(() => {
+          draw(pixels);
+          resolve();
+        }, 1),
+      );
+    },
+    onInput: (paddleX, ballX): Promise<-1 | 0 | 1> => {
+      if (autopilot) {
+        return new Promise((resolve) => resolve(doAutopilot(paddleX, ballX)));
       } else {
-        if (!pixels[y]) {
-          pixels[y] = [];
-        }
+        return new Promise((resolve) => {
+          addEventListener("keydown", handleArrowKey);
+          autopilotOnButton.addEventListener("click", handleAutopilotButton);
 
-        pixels[y][x] = value;
-        draw(pixels);
+          function handleArrowKey(event: KeyboardEvent) {
+            const key = event.key;
 
-        if (value === 3) {
-          paddleX = x;
-        } else if (value === 4) {
-          ballX = x;
-        }
+            if (["ArrowRight", "ArrowUp", "ArrowLeft"].includes(key)) {
+              removeEventListener("keydown", handleArrowKey);
+
+              switch (key) {
+                case "ArrowRight":
+                  resolve(1);
+                  break;
+                case "ArrowUp":
+                  resolve(0);
+                  break;
+                case "ArrowLeft":
+                  resolve(-1);
+                  break;
+              }
+            }
+          }
+
+          function handleAutopilotButton() {
+            autopilotOnButton.removeEventListener(
+              "click",
+              handleAutopilotButton,
+            );
+            enableAutopilot();
+            resolve(doAutopilot(paddleX, ballX));
+          }
+        });
       }
+    },
+  });
 
-      currentOutput = [];
-    }
-
-    computerStatus = computer.run();
-  }
-
-  if (autopilot && computerStatus.status === "input") {
-    setTimeout(doAutopilot, 5);
-  }
-
-  if (computerStatus.status === "done") {
-    draw(pixels);
+  if (state === "win") {
     youWin.classList.remove("hidden");
-  }
-}
-
-addEventListener("keydown", (event: KeyboardEvent) => {
-  if (
-    autopilot ||
-    !computer ||
-    !computerStatus ||
-    computerStatus.status !== "input"
-  ) {
-    return;
+  } else if (state === "loss") {
+    youLose.classList.remove("hidden");
   }
 
-  switch (event.key) {
-    case "ArrowRight":
-      computer.enqueueInput(1);
-      run();
-      break;
-    case "ArrowUp":
-      computer.enqueueInput(0);
-      run();
-      break;
-    case "ArrowLeft":
-      computer.enqueueInput(-1);
-      run();
-      break;
-    default:
-      break;
-  }
+  autopilotOnButton.disabled = true;
+  autopilotOffButton.disabled = true;
 });
 
 function draw(pixels: number[][]) {
@@ -163,18 +148,4 @@ function draw(pixels: number[][]) {
   });
 
   ctx.save();
-}
-
-function doAutopilot() {
-  if (computerStatus.status === "input") {
-    if (paddleX > ballX) {
-      computer.enqueueInput(-1);
-    } else if (paddleX < ballX) {
-      computer.enqueueInput(1);
-    } else {
-      computer.enqueueInput(0);
-    }
-
-    run();
-  }
 }

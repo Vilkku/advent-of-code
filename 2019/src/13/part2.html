@@ -26,11 +26,12 @@
       .screen-container {
         position: relative;
         border: 1px solid black;
+        min-width: 1260px;
+        min-height: 720px;
       }
 
-      #you-win {
+      .game-end {
         position: absolute;
-        background-color: lightblue;
         top: 0;
         right: 0;
         bottom: 0;
@@ -40,6 +41,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      #you-win {
+        background-color: lightblue;
+      }
+
+      #you-lose {
+        background-color: lightgrey;
       }
 
       #screen {
@@ -66,8 +75,11 @@
         <div id="score">0</div>
       </section>
       <section class="screen-container">
-        <div id="you-win" class="hidden">
+        <div id="you-win" class="game-end hidden">
           <b>🎉 You win! 🎉</b>
+        </div>
+        <div id="you-lose" class="game-end hidden">
+          <b>😔 You lose! 😔</b>
         </div>
         <canvas id="screen" width="1260" height="720"></canvas>
       </section>
