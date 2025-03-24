@@ -1,7 +1,9 @@
+import { getInput, toInt } from "../util/input.ts";
 import { isPasswordValid } from "./funcs.ts";
 
-const start = 172930;
-const end = 683082;
+const [start, end] = (await getInput(import.meta.dir, "input.txt"))
+  .split("-")
+  .map(toInt);
 
 const validPasswords: number[] = [];
 for (let i = start; i <= end; i++) {

@@ -1,4 +1,4 @@
-import { inputToStrings, toInt } from "../util/input";
+import { toInt } from "../util/input";
 
 type Coordinate = [number, number];
 interface Line {
@@ -16,7 +16,7 @@ interface Intersection {
 }
 
 export const inputRowToInstructions = (row: string): [string, number][] =>
-  inputToStrings(row).map((s): [string, number] => {
+  row.split(",").map((s): [string, number] => {
     const direction = s.substring(0, 1);
     const distance = toInt(s.substring(1));
 

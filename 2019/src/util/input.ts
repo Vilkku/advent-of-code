@@ -11,7 +11,6 @@ export const getInput = async (
 };
 
 export const inputToRows = (input: string): string[] => input.split("\n");
-export const inputToStrings = (input: string): string[] => input.split(",");
 export const inputToIntcodeComputerMemory = (input: string): number[] =>
   input.split(",").map(toInt);
 
