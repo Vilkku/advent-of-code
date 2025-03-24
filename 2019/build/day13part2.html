@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Day 13 Part 2</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+
+      section {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .container {
+        margin: 0 auto;
+        width: 1260px;
+      }
+
+      #score {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+
+      .screen-container {
+        position: relative;
+        border: 1px solid black;
+        min-width: 1260px;
+        min-height: 720px;
+      }
+
+      .game-end {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        font-size: 3rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #you-win {
+        background-color: lightblue;
+      }
+
+      #you-lose {
+        background-color: lightgrey;
+      }
+
+      #screen {
+        margin: 0 auto;
+      }
+
+      #program {
+        width: 50%;
+        height: 100px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  <script type="module" crossorigin src="./day13part2-v226r2gj.js"></script></head>
+  <body>
+    <div class="container">
+      <section>
+        <h1>Day 13 Part 2</h1>
+      </section>
+      <section>
+        <b>Score:</b>
+        <div id="score">0</div>
+      </section>
+      <section class="screen-container">
+        <div id="you-win" class="game-end hidden">
+          <b>🎉 You win! 🎉</b>
+        </div>
+        <div id="you-lose" class="game-end hidden">
+          <b>😔 You lose! 😔</b>
+        </div>
+        <canvas id="screen" width="1260" height="720"></canvas>
+      </section>
+      <section>
+        <button id="autopilot-on" disabled>⏵ Autopilot On</button>
+        <button id="autopilot-off" disabled>⏸ Autopilot Off</button>
+      </section>
+      <section>
+        <label for="program">Program</label>
+        <div><textarea id="program"></textarea></div>
+        <button id="run">Run</button>
+      </section>
+    </div>
+    
+  </body>
+</html>
