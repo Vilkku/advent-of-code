@@ -36,6 +36,8 @@ function disableAutopilot() {
 autopilotOnButton.addEventListener("click", enableAutopilot);
 autopilotOffButton.addEventListener("click", disableAutopilot);
 
+let animationFrameId: number | null = null;
+
 runButton.addEventListener("click", async () => {
   const initialMemory = inputToIntcodeComputerMemory(programInput.value);
 
@@ -49,12 +51,17 @@ runButton.addEventListener("click", async () => {
       scoreboard.textContent = score.toString();
     },
     onDisplayChange: (pixels): Promise<void> => {
-      return new Promise((resolve) =>
-        setTimeout(() => {
+      return new Promise((resolve) => {
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+        }
+
+        animationFrameId = requestAnimationFrame(() => {
           draw(pixels);
           resolve();
-        }, 1),
-      );
+          animationFrameId = null;
+        });
+      });
     },
     onInput: (paddleX, ballX): Promise<-1 | 0 | 1> => {
       if (autopilot) {
@@ -112,16 +119,15 @@ function draw(pixels: number[][]) {
 
   const scale = 30;
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   const width = pixels[0]?.length ?? 0;
   const height = pixels.length;
 
-  canvas.width = width * scale;
-  canvas.height = height * scale;
+  if (canvas.width !== width * scale || canvas.height !== height * scale) {
+    canvas.width = width * scale;
+    canvas.height = height * scale;
 
-  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  }
 
   pixels.forEach((row, y) => {
     row.forEach((px, x) => {
@@ -146,6 +152,4 @@ function draw(pixels: number[][]) {
       ctx.fillRect(x, y, 1, 1);
     });
   });
-
-  ctx.save();
 }
