@@ -445,7 +445,6 @@ class IntcodeComputer {
 // src/13/funcs.ts
 async function run(initialMemory, {
   onScoreChange,
-  onDisplayChange,
   onInput
 } = {}) {
   const computer = new IntcodeComputer(initialMemory);
@@ -473,9 +472,6 @@ async function run(initialMemory, {
               pixels[y2] = [];
             }
             pixels[y2][x2] = value;
-            if (onDisplayChange) {
-              await onDisplayChange(pixels);
-            }
             if (value === 3) {
               paddleX = x2;
               paddleY = y2;
@@ -492,7 +488,7 @@ async function run(initialMemory, {
         if (!onInput) {
           throw new Error("Unhandled input status");
         }
-        computer.enqueueInput(await onInput(paddleX, ballX));
+        computer.enqueueInput(await onInput(paddleX, ballX, pixels));
         computerStatus = computer.run();
         break;
     }
@@ -536,30 +532,21 @@ function disableAutopilot() {
 }
 autopilotOnButton.addEventListener("click", enableAutopilot);
 autopilotOffButton.addEventListener("click", disableAutopilot);
-var animationFrameId = null;
 runButton.addEventListener("click", async () => {
   const initialMemory = inputToIntcodeComputerMemory(programInput.value);
   disableAutopilot();
   youWin.classList.add("hidden");
   youLose.classList.add("hidden");
   scoreboard.textContent = "0";
-  const { state } = await run(initialMemory, {
+  const { state, pixels } = await run(initialMemory, {
     onScoreChange: (score) => {
       scoreboard.textContent = score.toString();
     },
-    onDisplayChange: (pixels) => {
-      return new Promise((resolve) => {
-        if (animationFrameId !== null) {
-          cancelAnimationFrame(animationFrameId);
-        }
-        animationFrameId = requestAnimationFrame(() => {
-          draw(pixels);
-          resolve();
-          animationFrameId = null;
-        });
+    onInput: async (paddleX, ballX, pixels2) => {
+      await new Promise((resolve) => {
+        drawWithAnimationFrame(pixels2);
+        setTimeout(resolve, 5);
       });
-    },
-    onInput: (paddleX, ballX) => {
       if (autopilot) {
         return new Promise((resolve) => resolve(doAutopilot(paddleX, ballX)));
       } else {
@@ -592,6 +579,7 @@ runButton.addEventListener("click", async () => {
       }
     }
   });
+  drawWithAnimationFrame(pixels);
   if (state === "win") {
     youWin.classList.remove("hidden");
   } else if (state === "loss") {
@@ -600,6 +588,16 @@ runButton.addEventListener("click", async () => {
   autopilotOnButton.disabled = true;
   autopilotOffButton.disabled = true;
 });
+var animationFrameId = null;
+function drawWithAnimationFrame(pixels) {
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+  }
+  animationFrameId = requestAnimationFrame(() => {
+    draw(pixels);
+    animationFrameId = null;
+  });
+}
 function draw(pixels) {
   const ctx = canvas.getContext("2d");
   const scale = 30;
@@ -609,6 +607,12 @@ function draw(pixels) {
     canvas.width = width * scale;
     canvas.height = height * scale;
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  } else {
+    const t = ctx.getTransform();
+    const transformIsCorrect = t.a === scale && t.b === 0 && t.c === 0 && t.d === scale && t.e === 0 && t.f === 0;
+    if (!transformIsCorrect) {
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    }
   }
   pixels.forEach((row, y2) => {
     row.forEach((px, x2) => {

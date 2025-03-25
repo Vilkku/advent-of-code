@@ -4,12 +4,14 @@ export async function run(
   initialMemory: number[],
   {
     onScoreChange,
-    onDisplayChange,
     onInput,
   }: {
     onScoreChange?: (score: number) => void;
-    onDisplayChange?: (pixels: number[][]) => Promise<void>;
-    onInput?: (paddleX: number, ballX: number) => Promise<-1 | 0 | 1>;
+    onInput?: (
+      paddleX: number,
+      ballX: number,
+      pixels: number[][],
+    ) => Promise<-1 | 0 | 1>;
   } = {},
 ) {
   const computer = new IntcodeComputer(initialMemory);
@@ -43,10 +45,6 @@ export async function run(
 
             pixels[y][x] = value;
 
-            if (onDisplayChange) {
-              await onDisplayChange(pixels);
-            }
-
             if (value === 3) {
               paddleX = x;
               paddleY = y;
@@ -66,7 +64,7 @@ export async function run(
           throw new Error("Unhandled input status");
         }
 
-        computer.enqueueInput(await onInput(paddleX, ballX));
+        computer.enqueueInput(await onInput(paddleX, ballX, pixels));
         computerStatus = computer.run();
         break;
     }

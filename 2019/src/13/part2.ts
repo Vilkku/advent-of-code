@@ -36,8 +36,6 @@ function disableAutopilot() {
 autopilotOnButton.addEventListener("click", enableAutopilot);
 autopilotOffButton.addEventListener("click", disableAutopilot);
 
-let animationFrameId: number | null = null;
-
 runButton.addEventListener("click", async () => {
   const initialMemory = inputToIntcodeComputerMemory(programInput.value);
 
@@ -46,24 +44,16 @@ runButton.addEventListener("click", async () => {
   youLose.classList.add("hidden");
   scoreboard.textContent = "0";
 
-  const { state } = await run(initialMemory, {
+  const { state, pixels } = await run(initialMemory, {
     onScoreChange: (score) => {
       scoreboard.textContent = score.toString();
     },
-    onDisplayChange: (pixels): Promise<void> => {
-      return new Promise((resolve) => {
-        if (animationFrameId !== null) {
-          cancelAnimationFrame(animationFrameId);
-        }
-
-        animationFrameId = requestAnimationFrame(() => {
-          draw(pixels);
-          resolve();
-          animationFrameId = null;
-        });
+    onInput: async (paddleX, ballX, pixels): Promise<-1 | 0 | 1> => {
+      await new Promise((resolve) => {
+        drawWithAnimationFrame(pixels);
+        setTimeout(resolve, 5);
       });
-    },
-    onInput: (paddleX, ballX): Promise<-1 | 0 | 1> => {
+
       if (autopilot) {
         return new Promise((resolve) => resolve(doAutopilot(paddleX, ballX)));
       } else {
@@ -104,6 +94,8 @@ runButton.addEventListener("click", async () => {
     },
   });
 
+  drawWithAnimationFrame(pixels);
+
   if (state === "win") {
     youWin.classList.remove("hidden");
   } else if (state === "loss") {
@@ -113,6 +105,18 @@ runButton.addEventListener("click", async () => {
   autopilotOnButton.disabled = true;
   autopilotOffButton.disabled = true;
 });
+
+let animationFrameId: number | null = null;
+function drawWithAnimationFrame(pixels: number[][]) {
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+  }
+
+  animationFrameId = requestAnimationFrame(() => {
+    draw(pixels);
+    animationFrameId = null;
+  });
+}
 
 function draw(pixels: number[][]) {
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -127,6 +131,19 @@ function draw(pixels: number[][]) {
     canvas.height = height * scale;
 
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  } else {
+    const t = ctx.getTransform();
+    const transformIsCorrect =
+      t.a === scale &&
+      t.b === 0 &&
+      t.c === 0 &&
+      t.d === scale &&
+      t.e === 0 &&
+      t.f === 0;
+
+    if (!transformIsCorrect) {
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    }
   }
 
   pixels.forEach((row, y) => {
