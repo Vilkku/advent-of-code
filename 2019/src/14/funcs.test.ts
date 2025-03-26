@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { getRequiredOre, parseReactions } from "./funcs.ts";
+import { getRequiredOre, maxFuelForOre, parseReactions } from "./funcs.ts";
 
 const example1 = parseReactions(`10 ORE => 10 A
 1 ORE => 1 B
@@ -63,4 +63,10 @@ test("getRequiredOre", () => {
   expect(getRequiredOre(example3)).toBe(13312);
   expect(getRequiredOre(example4)).toBe(180697);
   expect(getRequiredOre(example5)).toBe(2210736);
+});
+
+test("maxFuelForOre", () => {
+  expect(maxFuelForOre(example3)).toBe(82892753);
+  expect(maxFuelForOre(example4)).toBe(5586022);
+  expect(maxFuelForOre(example5)).toBe(460664);
 });

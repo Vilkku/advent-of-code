@@ -86,3 +86,27 @@ export function getRequiredOre(
     return sum + requiredOre;
   }, 0);
 }
+
+export function maxFuelForOre(reactions: Reaction[]): number {
+  const oreAvailable = 1000000000000;
+
+  let low = 1;
+  let high = oreAvailable;
+
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    const oreUsed = getRequiredOre(
+      reactions,
+      { chemical: "FUEL", amount: mid },
+      {},
+    );
+
+    if (oreUsed > oreAvailable) {
+      high = mid - 1;
+    } else {
+      low = mid;
+    }
+  }
+
+  return low;
+}

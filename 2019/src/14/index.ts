@@ -1,4 +1,9 @@
-import { getRequiredOre, parseReactions, type Reaction } from "./funcs.ts";
+import {
+  getRequiredOre,
+  maxFuelForOre,
+  parseReactions,
+  type Reaction,
+} from "./funcs.ts";
 
 import { getInput } from "../util/input.ts";
 
@@ -7,3 +12,5 @@ const reactions: Reaction[] = parseReactions(
 );
 
 console.log("Part 1", getRequiredOre(reactions));
+
+console.log("Part 2", maxFuelForOre(reactions));
