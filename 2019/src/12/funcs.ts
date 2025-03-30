@@ -27,24 +27,18 @@ function simulateDimensionStep(
         initialState[i].position[dimension] >
         initialState[j].position[dimension]
       ) {
-        nextState[i].position[dimension]--;
         nextState[i].velocity[dimension]--;
-
-        nextState[j].position[dimension]++;
         nextState[j].velocity[dimension]++;
       } else if (
         initialState[i].position[dimension] <
         initialState[j].position[dimension]
       ) {
-        nextState[i].position[dimension]++;
         nextState[i].velocity[dimension]++;
-
-        nextState[j].position[dimension]--;
         nextState[j].velocity[dimension]--;
       }
     }
 
-    nextState[i].position[dimension] += initialState[i].velocity[dimension];
+    nextState[i].position[dimension] += nextState[i].velocity[dimension];
   }
 
   return nextState;
