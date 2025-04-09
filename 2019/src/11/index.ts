@@ -1,8 +1,11 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
-import { getSmallestAndLargestKeysInRecord, paintSquares } from "./funcs.ts";
+import { paintSquares } from "./funcs.ts";
 import { expect } from "bun:test";
 import { useBenchmark } from "../util/benchmark.ts";
-import { print2DArray } from "../util/print2DArray.ts";
+import {
+  getSmallestAndLargestKeysInRecord,
+  print2DArray,
+} from "../util/print2DArray.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),

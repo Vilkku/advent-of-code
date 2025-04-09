@@ -103,15 +103,3 @@ export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
 
   return squares;
 }
-
-export function getSmallestAndLargestKeysInRecord(
-  record: Record<number, unknown>,
-): { min: number; max: number } {
-  // Keys are actually strings so need to use a custom sort function
-  const sortedKeys = [...Object.keys(record)].map(toInt).sort((a, b) => a - b);
-
-  return {
-    min: sortedKeys.at(0) ?? 0,
-    max: sortedKeys.at(-1) ?? 0,
-  };
-}
