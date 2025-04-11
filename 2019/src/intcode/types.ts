@@ -81,7 +81,7 @@ interface IntcodeComputerStatusInput {
   status: "input";
 }
 
-interface IntcodeComputerStatusOutput {
+export interface IntcodeComputerStatusOutput {
   status: "output";
   output: number;
 }
