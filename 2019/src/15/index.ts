@@ -1,7 +1,7 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import { expect } from "bun:test";
 import { useBenchmark } from "../util/benchmark.ts";
-import { explore, type Map } from "./funcs.ts";
+import { explore, type Map, spreadOxygenToAllFloors } from "./funcs.ts";
 import {
   getSmallestAndLargestKeysInRecord,
   print2DArray,
@@ -55,7 +55,7 @@ print2DArray(
       case 1:
         return ".";
       case 2:
-        return "X";
+        return "O";
       default:
         return " ";
     }
@@ -66,3 +66,9 @@ print2DArray(
 console.log("Part 1", part1Answer);
 benchmark.get();
 expect(part1Answer).toBe(216);
+
+benchmark.reset();
+const part2Answer = spreadOxygenToAllFloors(map);
+console.log("Part 2", part2Answer);
+benchmark.get();
+expect(part2Answer).toBe(326);

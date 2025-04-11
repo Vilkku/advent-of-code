@@ -1,9 +1,16 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
+import { toInt } from "../util/input.ts";
 
 // North, South, West, East
 const directions = [1, 2, 3, 4] as const;
 type Direction = (typeof directions)[number];
 export type Map = Record<number, Record<number, 0 | 1 | 2>>;
+
+const tiles = {
+  wall: 0,
+  floor: 1,
+  oxygen: 2,
+} as const;
 
 function run(
   initialMemory: number[],
@@ -41,6 +48,10 @@ function getNextXY(x: number, y: number, direction: number): [number, number] {
   }
 }
 
+function coordinateIsMapped(x: number, y: number, map: Map) {
+  return map[y] && map[y][x] && typeof map[y][x] !== "undefined";
+}
+
 export function explore(
   x: number,
   y: number,
@@ -51,11 +62,7 @@ export function explore(
   const unexploredDirections: Direction[] = directions.filter((direction) => {
     const [nextX, nextY] = getNextXY(x, y, direction);
 
-    return !(
-      map[nextY] &&
-      map[nextY][nextX] &&
-      typeof map[nextY][nextX] !== "undefined"
-    );
+    return !coordinateIsMapped(nextX, nextY, map);
   });
 
   iteration++;
@@ -71,13 +78,15 @@ export function explore(
 
     switch (computerStatus.output) {
       case 0:
-        map[nextY][nextX] = 0;
+        map[nextY][nextX] = tiles.wall;
         return 0;
       case 1:
-        map[nextY][nextX] = 1;
+        map[nextY][nextX] = tiles.floor;
         return explore(nextX, nextY, computerStatus.memory, map, iteration);
       case 2:
-        map[nextY][nextX] = 2;
+        map[nextY][nextX] = tiles.oxygen;
+        // Continue exploring to get complete map but do not use that for returned iteration count
+        explore(nextX, nextY, computerStatus.memory, map, iteration);
         return iteration;
       default:
         throw new Error(`Invalid output ${computerStatus.output}`);
@@ -85,4 +94,71 @@ export function explore(
   });
 
   return results.reduce((sum, a) => sum + a, 0);
+}
+
+function getAdjacentFloors(x: number, y: number, map: Map): [number, number][] {
+  return directions
+    .map((direction) => getNextXY(x, y, direction))
+    .filter(
+      ([nextX, nextY]) =>
+        coordinateIsMapped(nextX, nextY, map) &&
+        map[nextY][nextX] === tiles.floor,
+    );
+}
+
+function spreadOxygen(
+  floors: [number, number][],
+  floorTiles: Set<string>,
+  map: Map,
+  iteration = -1,
+): number {
+  floors.forEach(([x, y]) => {
+    floorTiles.delete(`${x},${y}`);
+  });
+
+  iteration++;
+
+  return Math.max(
+    ...floors.flatMap(([x, y]) => {
+      const adjacentFloors = getAdjacentFloors(x, y, map).filter(([x, y]) =>
+        floorTiles.has(`${x},${y}`),
+      );
+
+      if (adjacentFloors.length === 0) {
+        return iteration;
+      }
+
+      return spreadOxygen(adjacentFloors, floorTiles, map, iteration);
+    }),
+  );
+}
+
+export function spreadOxygenToAllFloors(map: Map) {
+  let oxygenX: number | undefined = undefined;
+  let oxygenY: number | undefined = undefined;
+
+  const floorTiles = new Set(
+    Object.entries(map)
+      .flatMap(([y, row]) =>
+        Object.entries(row).map(([x, tile]): string | undefined => {
+          if (tile === tiles.oxygen) {
+            oxygenX = toInt(x);
+            oxygenY = toInt(y);
+          }
+
+          if (tile === tiles.floor) {
+            return `${x},${y}`;
+          }
+
+          return undefined;
+        }),
+      )
+      .filter((value): value is string => typeof value === "string"),
+  );
+
+  if (!oxygenX || !oxygenY) {
+    throw new Error("Did not find oxygen");
+  }
+
+  return spreadOxygen([[oxygenX, oxygenY]], floorTiles, map);
 }
