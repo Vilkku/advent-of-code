@@ -47,7 +47,7 @@ for (let y = smallestY; y <= largestY; y++) {
 
 print2DArray(
   image,
-  "Part 1",
+  "Map",
   (px) => {
     switch (px) {
       case 0:
