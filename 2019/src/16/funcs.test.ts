@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
-import { generateNextPhase, generateNPhases } from "./funcs.ts";
+import {
+  generateNextPhase,
+  generateNPhases,
+  getMessageWithOffset,
+  repeatArray,
+} from "./funcs.ts";
 
 const phase1 = [1, 2, 3, 4, 5, 6, 7, 8];
 const phase2 = [4, 8, 2, 2, 6, 1, 5, 8];
@@ -43,4 +48,20 @@ test("generateNPhases", () => {
       100,
     ).slice(0, 8),
   ).toEqual([5, 2, 4, 3, 2, 1, 3, 3]);
+});
+
+test("repeatArray", () => {
+  expect(repeatArray([1, 2], 10000)).toHaveLength(20000);
+});
+
+test("getMessageWithOffset", () => {
+  expect(
+    getMessageWithOffset(
+      [
+        0, 3, 0, 3, 6, 7, 3, 2, 5, 7, 7, 2, 1, 2, 9, 4, 4, 0, 6, 3, 4, 9, 1, 5,
+        6, 5, 4, 7, 4, 6, 6, 4,
+      ],
+      100,
+    ),
+  ).toEqual([8, 4, 4, 6, 2, 0, 2, 6]);
 });
