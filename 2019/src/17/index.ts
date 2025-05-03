@@ -1,6 +1,10 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
-import { generateImage, getSumOfAlignmentParameters } from "./funcs.ts";
-import { printImage } from "../util/map.ts";
+import {
+  asciiToPixel,
+  generateImageData,
+  getSumOfAlignmentParameters,
+} from "./funcs.ts";
+import { printImageData } from "../util/map.ts";
 import { printAnswer } from "../util/benchmark.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
@@ -10,9 +14,9 @@ const initialMemory = inputToIntcodeComputerMemory(
 printAnswer(
   "Part 1",
   () => {
-    const image = generateImage(initialMemory);
-    printImage(image);
-    return getSumOfAlignmentParameters(image);
+    const imageData = generateImageData(initialMemory);
+    printImageData(imageData, asciiToPixel);
+    return getSumOfAlignmentParameters(imageData);
   },
   2660,
 );

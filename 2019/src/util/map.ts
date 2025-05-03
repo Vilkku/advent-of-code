@@ -81,6 +81,14 @@ export function printImage(image: Image): void {
   });
 }
 
+export function printImageData(
+  imageData: ImageData,
+  dataToPixel: (data: number) => Pixel = simpleDataToPixel,
+): void {
+  const image = imageDataToImage(imageData, dataToPixel);
+  printImage(image);
+}
+
 export function printMap(
   map: Map,
   dataToPixel: (data: number) => Pixel = simpleDataToPixel,

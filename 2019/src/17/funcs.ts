@@ -1,13 +1,12 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
-import { type Image, type Pixel, pixels } from "../util/map.ts";
+import { type ImageData, type Pixel, pixels } from "../util/map.ts";
 
 export const tiles = {
-  space: pixels.black,
-  scaffold: pixels.white,
-  robot: pixels.red,
+  scaffold: 35,
+  space: 46,
 } as const;
 
-export function generateImage(initialMemory: number[]): Image {
+export function generateImageData(initialMemory: number[]): ImageData {
   const computer = new IntcodeComputer(initialMemory);
   let computerStatus = computer.run();
 
@@ -22,7 +21,7 @@ export function generateImage(initialMemory: number[]): Image {
   }
 
   let currentChunk = 0;
-  return computer.outputs.reduce<Image>((resultArray, item) => {
+  return computer.outputs.reduce<ImageData>((resultArray, item) => {
     if (item === 10) {
       currentChunk++;
       return resultArray;
@@ -32,24 +31,24 @@ export function generateImage(initialMemory: number[]): Image {
       resultArray[currentChunk] = [];
     }
 
-    resultArray[currentChunk].push(asciiToPixel(item));
+    resultArray[currentChunk].push(item);
 
     return resultArray;
   }, []);
 }
 
-function asciiToPixel(tile: number): Pixel {
+export function asciiToPixel(tile: number): Pixel {
   switch (tile) {
-    case 35:
-      return tiles.scaffold;
-    case 46:
-      return tiles.space;
+    case tiles.scaffold:
+      return pixels.white;
+    case tiles.space:
+      return pixels.black;
     default:
-      return tiles.robot;
+      return pixels.red;
   }
 }
 
-function findIntersections(image: Image): [number, number][] {
+function findIntersections(image: ImageData): [number, number][] {
   const intersections: [number, number][] = [];
 
   // No intersections on the edges
@@ -76,7 +75,7 @@ function getAlignmentParameter([x, y]: [number, number]): number {
   return x * y;
 }
 
-export function getSumOfAlignmentParameters(image: Image): number {
+export function getSumOfAlignmentParameters(image: ImageData): number {
   const intersections = findIntersections(image);
 
   return intersections.reduce((sum, intersection) => {
