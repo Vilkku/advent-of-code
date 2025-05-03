@@ -1,22 +1,33 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import {
   asciiToPixel,
+  findPathToEnd,
   generateImageData,
   getSumOfAlignmentParameters,
 } from "./funcs.ts";
-import { printImageData } from "../util/map.ts";
+import { type ImageData, printImageData } from "../util/map.ts";
 import { printAnswer } from "../util/benchmark.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
 );
 
+let imageData: ImageData;
+
 printAnswer(
   "Part 1",
   () => {
-    const imageData = generateImageData(initialMemory);
+    imageData = generateImageData(initialMemory);
     printImageData(imageData, asciiToPixel);
     return getSumOfAlignmentParameters(imageData);
   },
   2660,
 );
+
+printAnswer("Part 2", () => {
+  findPathToEnd(imageData);
+  const part2InitialMemory = [...initialMemory];
+  part2InitialMemory[0] = 2;
+
+  return 0;
+});

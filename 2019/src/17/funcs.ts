@@ -6,6 +6,8 @@ export const tiles = {
   space: 46,
 } as const;
 
+type Direction = "u" | "d" | "l" | "r";
+
 export function generateImageData(initialMemory: number[]): ImageData {
   const computer = new IntcodeComputer(initialMemory);
   let computerStatus = computer.run();
@@ -48,18 +50,18 @@ export function asciiToPixel(tile: number): Pixel {
   }
 }
 
-function findIntersections(image: ImageData): [number, number][] {
+function findIntersections(imageData: ImageData): [number, number][] {
   const intersections: [number, number][] = [];
 
   // No intersections on the edges
-  for (let y = 1; y < image.length - 1; y++) {
-    for (let x = 1; x < image[y].length - 1; x++) {
+  for (let y = 1; y < imageData.length - 1; y++) {
+    for (let x = 1; x < imageData[y].length - 1; x++) {
       const tilesToCheck = [
-        image[y][x],
-        image[y][x - 1],
-        image[y][x + 1],
-        image[y - 1][x],
-        image[y + 1][x],
+        imageData[y][x],
+        imageData[y][x - 1],
+        imageData[y][x + 1],
+        imageData[y - 1][x],
+        imageData[y + 1][x],
       ];
 
       if (tilesToCheck.every((tile) => tile === tiles.scaffold)) {
@@ -75,10 +77,296 @@ function getAlignmentParameter([x, y]: [number, number]): number {
   return x * y;
 }
 
-export function getSumOfAlignmentParameters(image: ImageData): number {
-  const intersections = findIntersections(image);
+export function getSumOfAlignmentParameters(imageData: ImageData): number {
+  const intersections = findIntersections(imageData);
 
   return intersections.reduce((sum, intersection) => {
     return sum + getAlignmentParameter(intersection);
   }, 0);
+}
+
+function getStartAndDirection(imageData: ImageData): {
+  x: number;
+  y: number;
+  direction: Direction;
+} {
+  for (let y = 0; y < imageData.length; y++) {
+    for (let x = 0; x < imageData[y].length; x++) {
+      if (
+        !([tiles.scaffold, tiles.space] as number[]).includes(imageData[y][x])
+      ) {
+        switch (String.fromCharCode(imageData[y][x])) {
+          case "^":
+            return {
+              direction: "u",
+              x,
+              y,
+            };
+          case "v":
+            return {
+              direction: "d",
+              x,
+              y,
+            };
+          case "<":
+            return {
+              direction: "l",
+              x,
+              y,
+            };
+          case ">":
+            return {
+              direction: "r",
+              x,
+              y,
+            };
+          default:
+            throw new Error(`Unknown character code "${imageData[y][x]}"`);
+        }
+      }
+    }
+  }
+
+  throw new Error("Could not find start coordinates");
+}
+
+function getNextXY(
+  x: number,
+  y: number,
+  direction: Direction,
+): [number, number] {
+  switch (direction) {
+    case "u":
+      return [x, y - 1];
+    case "d":
+      return [x, y + 1];
+    case "l":
+      return [x - 1, y];
+    case "r":
+      return [x + 1, y];
+    default:
+      throw new Error(`Unexpected direction ${direction}`);
+  }
+}
+
+function turnRight(direction: Direction): Direction {
+  switch (direction) {
+    case "u":
+      return "r";
+    case "d":
+      return "l";
+    case "l":
+      return "u";
+    case "r":
+      return "d";
+  }
+}
+
+function turnLeft(direction: Direction): Direction {
+  switch (direction) {
+    case "u":
+      return "l";
+    case "d":
+      return "r";
+    case "l":
+      return "d";
+    case "r":
+      return "u";
+  }
+}
+
+function getNextInstructionAndData(
+  currentX: number,
+  currentY: number,
+  directionForward: Direction,
+  imageData: ImageData,
+): {
+  x: number;
+  y: number;
+  instruction: "R" | "L" | "F";
+  direction: Direction;
+} | null {
+  const [nextXForward, nextYForward] = getNextXY(
+    currentX,
+    currentY,
+    directionForward,
+  );
+
+  if (
+    imageData[nextYForward]?.[nextXForward] &&
+    imageData[nextYForward][nextXForward] === tiles.scaffold
+  ) {
+    return {
+      x: nextXForward,
+      y: nextYForward,
+      instruction: "F",
+      direction: directionForward,
+    };
+  }
+
+  const directionRight = turnRight(directionForward);
+  const [nextXRight, nextYRight] = getNextXY(
+    currentX,
+    currentY,
+    directionRight,
+  );
+
+  if (
+    imageData[nextYRight]?.[nextXRight] &&
+    imageData[nextYRight][nextXRight] === tiles.scaffold
+  ) {
+    return {
+      x: currentX,
+      y: currentY,
+      instruction: "R",
+      direction: directionRight,
+    };
+  }
+
+  const directionLeft = turnLeft(directionForward);
+  const [nextXLeft, nextYLeft] = getNextXY(currentX, currentY, directionLeft);
+
+  if (
+    imageData[nextYLeft]?.[nextXLeft] &&
+    imageData[nextYLeft][nextXLeft] === tiles.scaffold
+  ) {
+    return {
+      x: currentX,
+      y: currentY,
+      instruction: "L",
+      direction: directionLeft,
+    };
+  }
+
+  return null;
+}
+
+function rawInstructionToInstruction(rawInstruction: string): string {
+  let instructionParts: string[] = [];
+  const rawInstructionArr = rawInstruction.split("");
+  let fCounter = 0;
+
+  for (let i = 0; i < rawInstructionArr.length; i++) {
+    if (rawInstructionArr[i] !== "F") {
+      if (fCounter > 0) {
+        instructionParts.push(fCounter.toString());
+        fCounter = 0;
+      }
+
+      instructionParts.push(rawInstructionArr[i]);
+    } else {
+      fCounter++;
+    }
+  }
+
+  if (fCounter > 0) {
+    instructionParts.push(fCounter.toString());
+  }
+
+  return instructionParts.join(",");
+}
+
+export function findPathToEnd(imageData: ImageData) {
+  const {
+    x: startX,
+    y: startY,
+    direction: startDirection,
+  } = getStartAndDirection(imageData);
+
+  const instructions = [];
+  let x = startX;
+  let y = startY;
+  let direction = startDirection;
+  let complete = false;
+
+  while (!complete) {
+    const nextInstructionAndData = getNextInstructionAndData(
+      x,
+      y,
+      direction,
+      imageData,
+    );
+
+    if (!nextInstructionAndData) {
+      complete = true;
+    } else {
+      instructions.push(nextInstructionAndData.instruction);
+      x = nextInstructionAndData.x;
+      y = nextInstructionAndData.y;
+      direction = nextInstructionAndData.direction;
+    }
+  }
+
+  let fullInstructionString = instructions.join("");
+
+  console.log(fullInstructionString);
+
+  type BestSubstring = {
+    substring: string;
+    matches: number;
+    total: number;
+    instruction: string;
+    ratio: number;
+  };
+
+  const funcNames = ["A", "B", "C"];
+
+  funcNames.forEach((funcName) => {
+    const bestSubstrings: BestSubstring[] = [];
+
+    for (let start = 0; start < fullInstructionString.length; start++) {
+      let numMatches = 0;
+      let end = start;
+      let bestSubstring: BestSubstring | undefined = undefined;
+
+      do {
+        const substring = fullInstructionString.substring(start, end);
+
+        if (funcNames.some((funcName) => substring.includes(funcName))) {
+          numMatches = 0;
+        } else {
+          const matches = [
+            ...fullInstructionString.matchAll(new RegExp(substring, "g")),
+          ];
+
+          numMatches = matches.length;
+          end++;
+
+          if (numMatches > 1 && numMatches < 20) {
+            const total = numMatches * substring.length;
+            const instruction = rawInstructionToInstruction(substring);
+            const ratio = total / numMatches;
+
+            if (
+              (!bestSubstring || ratio > bestSubstring.ratio) &&
+              instruction.length <= 20
+            ) {
+              bestSubstring = {
+                substring,
+                matches: numMatches,
+                total,
+                instruction,
+                ratio,
+              };
+            }
+          }
+        }
+      } while (numMatches > 1 && end <= fullInstructionString.length);
+
+      if (bestSubstring) {
+        bestSubstrings.push(bestSubstring);
+      }
+    }
+
+    bestSubstrings.sort((a, b) => b.total - a.total);
+
+    fullInstructionString = fullInstructionString.replaceAll(
+      bestSubstrings[0].substring,
+      funcName,
+    );
+
+    console.log(funcName, bestSubstrings[0], fullInstructionString);
+  });
+
+  console.log(fullInstructionString);
 }
