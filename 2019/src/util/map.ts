@@ -9,7 +9,7 @@ export const pixels = {
   blue: "blue",
 } as const;
 
-type Pixel = keyof typeof pixels;
+export type Pixel = keyof typeof pixels;
 export type Map = Record<number, Record<number, Pixel>>;
 export type Image = Pixel[][];
 
