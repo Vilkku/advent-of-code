@@ -10,7 +10,8 @@ export const pixels = {
 } as const;
 
 export type Pixel = keyof typeof pixels;
-export type Map = Record<number, Record<number, Pixel>>;
+export type Map = Record<number, Record<number, number>>;
+export type ImageData = number[][];
 export type Image = Pixel[][];
 
 function getSmallestAndLargestKeysInRecord(record: Record<number, unknown>): {
@@ -26,7 +27,7 @@ function getSmallestAndLargestKeysInRecord(record: Record<number, unknown>): {
   };
 }
 
-function mapToImage(map: Map): Image {
+function mapToImageData(map: Map): ImageData {
   const { min: smallestY, max: largestY } =
     getSmallestAndLargestKeysInRecord(map);
 
@@ -45,18 +46,25 @@ function mapToImage(map: Map): Image {
     }
   });
 
-  const image: Image = [];
+  const imageData: ImageData = [];
   for (let y = smallestY; y <= largestY; y++) {
-    const row: Pixel[] = [];
+    const row: number[] = [];
 
     for (let x = smallestX; x <= largestX; x++) {
-      row.push(map[y]?.[x] ?? pixels.black);
+      row.push(map[y]?.[x] ?? 0);
     }
 
-    image.push(row);
+    imageData.push(row);
   }
 
-  return image;
+  return imageData;
+}
+
+function imageDataToImage(
+  imageData: ImageData,
+  dataToPixel: (data: number) => Pixel,
+): Image {
+  return imageData.map((row) => row.map(dataToPixel));
 }
 
 export function printImage(image: Image): void {
@@ -73,6 +81,28 @@ export function printImage(image: Image): void {
   });
 }
 
-export function printMap(map: Map): void {
-  printImage(mapToImage(map));
+export function printMap(
+  map: Map,
+  dataToPixel: (data: number) => Pixel = simpleDataToPixel,
+): void {
+  const imageData = mapToImageData(map);
+  const image = imageDataToImage(imageData, dataToPixel);
+  printImage(image);
+}
+
+function simpleDataToPixel(data: number): Pixel {
+  switch (data) {
+    case 0:
+      return pixels.black;
+    case 1:
+      return pixels.white;
+    case 2:
+      return pixels.red;
+    case 3:
+      return pixels.green;
+    case 4:
+      return pixels.blue;
+    default:
+      throw new Error(`Unknown image data "${data}"`);
+  }
 }

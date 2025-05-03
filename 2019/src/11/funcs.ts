@@ -1,5 +1,5 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
-import { type Map, pixels } from "../util/map.ts";
+import { type Map } from "../util/map.ts";
 
 export function paintSquares(
   initialMemory: number[],
@@ -28,10 +28,10 @@ export function paintSquares(
 
           switch (computerStatus.output) {
             case 0:
-              map[y][x] = pixels.black;
+              map[y][x] = 0;
               break;
             case 1:
-              map[y][x] = pixels.white;
+              map[y][x] = 1;
               break;
             default:
               throw new Error(
@@ -100,7 +100,7 @@ export function paintSquares(
         computerStatus = computer.run();
         break;
       case "input":
-        computer.enqueueInput(map[y]?.[x] === "white" ? 1 : 0);
+        computer.enqueueInput(map[y]?.[x] ?? 0);
         computerStatus = computer.run();
         break;
     }

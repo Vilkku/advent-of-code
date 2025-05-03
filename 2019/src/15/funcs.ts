@@ -1,15 +1,15 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
 import { toInt } from "../util/input.ts";
-import { type Map, pixels } from "../util/map.ts";
+import { type Map } from "../util/map.ts";
 
 // North, South, West, East
 const directions = [1, 2, 3, 4] as const;
 type Direction = (typeof directions)[number];
 
-export const tiles = {
-  wall: pixels.black,
-  floor: pixels.white,
-  oxygen: pixels.red,
+const tiles = {
+  wall: 0,
+  floor: 1,
+  oxygen: 2,
 } as const;
 
 function run(
