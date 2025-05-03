@@ -2,10 +2,7 @@ import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import { paintSquares } from "./funcs.ts";
 import { expect } from "bun:test";
 import { useBenchmark } from "../util/benchmark.ts";
-import {
-  getSmallestAndLargestKeysInRecord,
-  print2DArray,
-} from "../util/print2DArray.ts";
+import { printMap } from "../util/map.ts";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
@@ -25,35 +22,5 @@ expect(part1Answer).toBe(2226);
 
 benchmark.reset();
 const mapStartingOnWhite = paintSquares(initialMemory, 1);
-
-const { min: smallestY, max: largestY } =
-  getSmallestAndLargestKeysInRecord(mapStartingOnWhite);
-
-let smallestX = 0;
-let largestX = 0;
-
-Object.values(mapStartingOnWhite).forEach((row) => {
-  const { min, max } = getSmallestAndLargestKeysInRecord(row);
-
-  if (min < smallestX) {
-    smallestX = min;
-  }
-
-  if (max > largestX) {
-    largestX = max;
-  }
-});
-
-const image: number[][] = [];
-for (let y = smallestY; y <= largestY; y++) {
-  const row = [];
-
-  for (let x = smallestX; x <= largestX; x++) {
-    row.push(mapStartingOnWhite[y]?.[x] ?? 0);
-  }
-
-  image.push(row);
-}
-
-print2DArray(image, "Part 2");
+printMap(mapStartingOnWhite);
 benchmark.get();

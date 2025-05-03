@@ -1,15 +1,15 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
 import { toInt } from "../util/input.ts";
+import { type Map, pixels } from "../util/map.ts";
 
 // North, South, West, East
 const directions = [1, 2, 3, 4] as const;
 type Direction = (typeof directions)[number];
-export type Map = Record<number, Record<number, 0 | 1 | 2>>;
 
-const tiles = {
-  wall: 0,
-  floor: 1,
-  oxygen: 2,
+export const tiles = {
+  wall: pixels.black,
+  floor: pixels.white,
+  oxygen: pixels.red,
 } as const;
 
 function run(
@@ -56,7 +56,7 @@ export function explore(
   x: number,
   y: number,
   currentMemory: number[],
-  map: Map = { 0: { 0: 1 } },
+  map: Map,
   iteration = 0,
 ) {
   const unexploredDirections: Direction[] = directions.filter((direction) => {

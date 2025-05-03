@@ -1,8 +1,11 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer.ts";
-import { toInt } from "../util/input.ts";
+import { type Map, pixels } from "../util/map.ts";
 
-export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
-  const squares: Record<number, Record<number, 0 | 1>> = {};
+export function paintSquares(
+  initialMemory: number[],
+  startingSquare: 0 | 1,
+): Map {
+  const map: Map = {};
   const computer = new IntcodeComputer(initialMemory);
 
   let x = 0;
@@ -19,14 +22,16 @@ export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
         if (lastOutputType === "turn") {
           lastOutputType = "paint";
 
+          if (!map[y]) {
+            map[y] = {};
+          }
+
           switch (computerStatus.output) {
             case 0:
+              map[y][x] = pixels.black;
+              break;
             case 1:
-              if (!squares[y]) {
-                squares[y] = {};
-              }
-
-              squares[y][x] = computerStatus.output;
+              map[y][x] = pixels.white;
               break;
             default:
               throw new Error(
@@ -95,11 +100,11 @@ export function paintSquares(initialMemory: number[], startingSquare: 0 | 1) {
         computerStatus = computer.run();
         break;
       case "input":
-        computer.enqueueInput(squares[y]?.[x] ?? 0);
+        computer.enqueueInput(map[y]?.[x] === "white" ? 1 : 0);
         computerStatus = computer.run();
         break;
     }
   }
 
-  return squares;
+  return map;
 }

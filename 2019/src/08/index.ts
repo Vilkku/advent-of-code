@@ -1,5 +1,5 @@
 import { getInput, toInt } from "../util/input.ts";
-import { print2DArray } from "../util/print2DArray.ts";
+import { type Image, pixels, printImage } from "../util/map.ts";
 
 const input = (await getInput(import.meta.dir, "input.txt"))
   .split("")
@@ -35,23 +35,16 @@ console.log(
   digitsInLayerWithFewestZeroes[1] * digitsInLayerWithFewestZeroes[2],
 );
 
-const px = {
-  black: 0,
-  white: 1,
-  transparent: 2,
-} as const;
-
-const image: number[][] = [];
+const image: Image = [];
 for (let y = 0; y < height; y++) {
   image[y] = [];
   for (let x = 0; x < width; x++) {
     const pxIndex = y * width + x;
     const topmostPx =
-      layers.find((layer) => layer[pxIndex] !== px.transparent)?.[pxIndex] ??
-      px.transparent;
+      layers.find((layer) => layer[pxIndex] !== 2)?.[pxIndex] ?? 0;
 
-    image[y].push(topmostPx);
+    image[y].push(topmostPx === 0 ? pixels.black : pixels.white);
   }
 }
 
-print2DArray(image, "Part 2");
+printImage(image);
