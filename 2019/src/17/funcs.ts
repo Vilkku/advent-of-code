@@ -309,7 +309,7 @@ function getBestSubstrings(
         numMatches = matches.length;
         end++;
 
-        console.log(substring, numMatches);
+        // console.log(substring, numMatches);
         if (numMatches > 1 && numMatches < 20) {
           const total = numMatches * substring.length;
           const instruction = rawInstructionToInstruction(substring);
@@ -329,9 +329,51 @@ function getBestSubstrings(
     } while (numMatches > 1 && end <= fullString.length);
   }
 
-  bestSubstrings.sort((a, b) => b.ratio - a.ratio);
+  bestSubstrings.sort((a, b) => b.substring.length - a.substring.length);
 
-  return bestSubstrings;
+  return bestSubstrings.slice(0, 30);
+}
+
+// Thanks ChatGPT
+function fullReplacements(
+  input: string,
+  target: string,
+  replacement: string,
+): string[] {
+  const n = input.length;
+  const m = target.length;
+
+  // 1) dp[i] = maximum # of replacements we can still do from position i
+  const dp = new Array<number>(n + 1).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    // option A: skip this char
+    const skip = dp[i + 1];
+    // option B: replace here (if it matches)
+    const take = input.startsWith(target, i) ? 1 + dp[i + m] : 0;
+    dp[i] = Math.max(skip, take);
+  }
+
+  // 2) backtrack only along paths that reach dp[0] total replacements
+  const results = new Set<string>();
+  function dfs(current: string, i: number) {
+    if (i >= n) {
+      results.add(current);
+      return;
+    }
+
+    // If matching + taking here still can reach the max
+    if (input.startsWith(target, i) && 1 + dp[i + m] === dp[i]) {
+      dfs(current + replacement, i + m);
+    }
+
+    // If skipping this char still can reach the max
+    if (dp[i + 1] === dp[i]) {
+      dfs(current + input[i], i + 1);
+    }
+  }
+
+  dfs("", 0);
+  return Array.from(results);
 }
 
 export function findPathToEnd(imageData: ImageData) {
@@ -371,75 +413,61 @@ export function findPathToEnd(imageData: ImageData) {
 
   const bestASubstrings = getBestSubstrings(fullInstructionString, []);
 
-  const bestASubstring = bestASubstrings.find(
-    (substring) => substring.substring === "RFFFFFFFFRFFFFFFFF",
-  );
-
-  if (!bestASubstring) {
-    throw new Error("Could not find best A substring");
-  }
-
-  const fullInstructionStringWithA = fullInstructionString.replaceAll(
-    bestASubstring.substring,
-    "A",
-  );
-
-  console.log(fullInstructionStringWithA);
-
-  const bestBSubstrings = getBestSubstrings(fullInstructionStringWithA, ["A"]);
-
-  // R,4,R,4,R,8
-  const bestBSubstring = bestBSubstrings.find(
-    (substring) => substring.substring === "RFFFFRFFFFRFFFFFFFF",
-  );
-
-  if (!bestBSubstring) {
-    throw new Error("Could not find best B substring");
-  }
-
-  /*
   for (let bestASubstring of bestASubstrings) {
-    const fullInstructionStringWithA = fullInstructionString.replaceAll(
+    const fullInstructionStringsWithA = fullReplacements(
+      fullInstructionString,
       bestASubstring.substring,
       "A",
     );
 
-    const bestBSubstrings = getBestSubstrings(fullInstructionStringWithA, [
-      "A",
-    ]);
-
-    for (let bestBSubstring of bestBSubstrings) {
-      // TODO Issue is when replacing the strings, there might be multiple ways to do it
-      const fullInstructionStringWithAB = fullInstructionStringWithA.replaceAll(
-        bestBSubstring.substring,
-        "B",
-      );
-
-      const bestCSubstrings = getBestSubstrings(fullInstructionStringWithAB, [
+    for (let fullInstructionStringWithA of fullInstructionStringsWithA) {
+      const bestBSubstrings = getBestSubstrings(fullInstructionStringWithA, [
         "A",
-        "B",
       ]);
 
-      for (let bestCSubstring of bestCSubstrings) {
-        const fullInstructionStringWithABC =
-          fullInstructionStringWithA.replaceAll(bestCSubstring.substring, "C");
-
-        const isValidSolution = !(
-          fullInstructionStringWithABC.includes("L") ||
-          fullInstructionStringWithABC.includes("R") ||
-          fullInstructionStringWithABC.includes("F")
+      for (let bestBSubstring of bestBSubstrings) {
+        const fullInstructionStringsWithAB = fullReplacements(
+          fullInstructionStringWithA,
+          bestBSubstring.substring,
+          "B",
         );
 
-        console.log(fullInstructionStringWithABC);
+        for (let fullInstructionStringWithAB of fullInstructionStringsWithAB) {
+          const bestCSubstrings = getBestSubstrings(
+            fullInstructionStringWithAB,
+            ["A", "B"],
+          );
 
-        if (isValidSolution) {
-          throw new Error("Actually found a valid solution lol");
+          for (let bestCSubstring of bestCSubstrings) {
+            const fullInstructionStringsWithABC = fullReplacements(
+              fullInstructionStringWithAB,
+              bestCSubstring.substring,
+              "C",
+            );
+
+            for (let fullInstructionStringWithABC of fullInstructionStringsWithABC) {
+              const isValidSolution = !(
+                fullInstructionStringWithABC.includes("L") ||
+                fullInstructionStringWithABC.includes("R") ||
+                fullInstructionStringWithABC.includes("F")
+              );
+
+              console.log({
+                a: bestASubstring.substring,
+                b: bestBSubstring.substring,
+                c: bestCSubstring.substring,
+                f: fullInstructionStringWithABC,
+              });
+
+              if (isValidSolution) {
+                throw new Error("Actually found a valid solution lol");
+              }
+            }
+          }
         }
       }
     }
   }
 
   throw new Error("Didn't find any solution :(");
-
-   */
 }

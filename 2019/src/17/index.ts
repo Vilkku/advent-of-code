@@ -42,10 +42,8 @@ const testImageData = [
   [46, 46, 46, 46, 35, 35, 35, 35, 35, 46, 46, 46, 46, 46, 46],
 ];
 
-printImageData(testImageData, asciiToPixel);
-
 printAnswer("Part 2", () => {
-  findPathToEnd(testImageData);
+  findPathToEnd(imageData);
   const part2InitialMemory = [...initialMemory];
   part2InitialMemory[0] = 2;
 
