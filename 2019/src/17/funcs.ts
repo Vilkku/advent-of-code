@@ -12,7 +12,6 @@ export function runVacuumRobot(
   initialMemory: number[],
   routines: number[][] = [],
 ): { imageData: ImageData; dust: number } {
-  let dust = 0;
   const computer = new IntcodeComputer(initialMemory);
   let computerStatus = computer.run();
   const asciiCodes = [...routines.flat(), "n".charCodeAt(0), 10];
@@ -50,9 +49,7 @@ export function runVacuumRobot(
     return resultArray;
   }, []);
 
-  console.log("Last output", computer.outputs[computer.outputs.length - 1]);
-
-  return { imageData, dust };
+  return { imageData, dust: computer.outputs[computer.outputs.length - 1] };
 }
 
 export function asciiToPixel(tile: number): Pixel {
@@ -298,7 +295,7 @@ function rawInstructionToInstruction(rawInstruction: string): string[] {
 
 export function instructionToAsciiInstruction(instruction: string[]): number[] {
   return instruction
-    .flatMap((part) => part.split("").map((s) => s.charCodeAt(0)))
+    .map((part) => part.split("").map((s) => s.charCodeAt(0)))
     .flatMap((x) => [44, x])
     .flat()
     .slice(1);
@@ -322,6 +319,7 @@ function getBestFunctionCandidates(
   invalidCharacters: string[],
 ): BestFunctionCandidate[] {
   const bestFunctionCandidates: BestFunctionCandidate[] = [];
+  const checkedSubstrings = new Set<string>();
 
   for (let start = 0; start < fullInstructionStr.length; start++) {
     let numMatches = 0;
@@ -329,6 +327,12 @@ function getBestFunctionCandidates(
 
     do {
       const substring = fullInstructionStr.substring(start, end);
+
+      if (checkedSubstrings.has(substring)) {
+        continue;
+      }
+
+      checkedSubstrings.add(substring);
 
       if (
         invalidCharacters.some((invalidCharacter) =>
@@ -344,7 +348,6 @@ function getBestFunctionCandidates(
         numMatches = matches.length;
         end++;
 
-        // console.log(substring, numMatches);
         if (numMatches > 1 && numMatches < 20) {
           const total = numMatches * substring.length;
           const instruction = substring
@@ -354,7 +357,7 @@ function getBestFunctionCandidates(
           const asciiInstruction = instructionToAsciiInstruction(instruction);
           const ratio = total / numMatches;
 
-          if (asciiInstruction.length <= 30 && ratio > 1) {
+          if (asciiInstruction.length <= 20 && ratio > 1) {
             bestFunctionCandidates.push({
               matches: numMatches,
               total,
@@ -369,7 +372,7 @@ function getBestFunctionCandidates(
 
   // If we could somehow find actually the best candidates that would be cool
   bestFunctionCandidates.sort((a, b) => b.ratio - a.ratio);
-  return bestFunctionCandidates.slice(0, 30);
+  return bestFunctionCandidates.slice(0, 10);
 }
 
 // Thanks ChatGPT
