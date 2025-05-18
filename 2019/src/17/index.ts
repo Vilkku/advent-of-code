@@ -1,9 +1,10 @@
 import { getInput, inputToIntcodeComputerMemory } from "../util/input.ts";
 import {
   asciiToPixel,
-  findPathToEnd,
-  generateImageData,
+  findValidInstructionAndFunctionsToEnd,
+  runVacuumRobot,
   getSumOfAlignmentParameters,
+  instructionToAsciiInstructionWithNewline,
 } from "./funcs.ts";
 import { type ImageData, printImageData } from "../util/map.ts";
 import { printAnswer } from "../util/benchmark.ts";
@@ -17,7 +18,7 @@ let imageData: ImageData;
 printAnswer(
   "Part 1",
   () => {
-    imageData = generateImageData(initialMemory);
+    imageData = runVacuumRobot(initialMemory).imageData;
     printImageData(imageData, asciiToPixel);
     return getSumOfAlignmentParameters(imageData);
   },
@@ -43,10 +44,27 @@ const testImageData = [
 ];
 
 printAnswer("Part 2", () => {
-  // printImageData(testImageData, asciiToPixel);
-  findPathToEnd(imageData);
+  const { instruction, a, b, c } =
+    findValidInstructionAndFunctionsToEnd(imageData);
+
+  console.log({ instruction, a, b, c });
+
+  console.log(instruction);
+  const asciiMainRoutine =
+    instructionToAsciiInstructionWithNewline(instruction);
+  const asciiInstructionA = instructionToAsciiInstructionWithNewline(a);
+  const asciiInstructionB = instructionToAsciiInstructionWithNewline(b);
+  const asciiInstructionC = instructionToAsciiInstructionWithNewline(c);
+
   const part2InitialMemory = [...initialMemory];
   part2InitialMemory[0] = 2;
 
-  return 0;
+  const { dust } = runVacuumRobot(part2InitialMemory, [
+    asciiMainRoutine,
+    asciiInstructionA,
+    asciiInstructionB,
+    asciiInstructionC,
+  ]);
+
+  return dust;
 });

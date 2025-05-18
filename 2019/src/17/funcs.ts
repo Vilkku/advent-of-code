@@ -8,9 +8,14 @@ export const tiles = {
 
 type Direction = "u" | "d" | "l" | "r";
 
-export function generateImageData(initialMemory: number[]): ImageData {
+export function runVacuumRobot(
+  initialMemory: number[],
+  routines: number[][] = [],
+): { imageData: ImageData; dust: number } {
+  let dust = 0;
   const computer = new IntcodeComputer(initialMemory);
   let computerStatus = computer.run();
+  const asciiCodes = [...routines.flat(), "n".charCodeAt(0), 10];
 
   while (computerStatus.status !== "done") {
     switch (computerStatus.status) {
@@ -18,12 +23,19 @@ export function generateImageData(initialMemory: number[]): ImageData {
         computerStatus = computer.run();
         break;
       case "input":
-        throw new Error("Unexpected input status");
+        const nextAsciiCode = asciiCodes.shift();
+
+        if (!nextAsciiCode) {
+          throw new Error("Unexpected input status");
+        }
+
+        computer.enqueueInput(nextAsciiCode);
+        computerStatus = computer.run();
     }
   }
 
   let currentChunk = 0;
-  return computer.outputs.reduce<ImageData>((resultArray, item) => {
+  const imageData = computer.outputs.reduce<ImageData>((resultArray, item) => {
     if (item === 10) {
       currentChunk++;
       return resultArray;
@@ -37,6 +49,10 @@ export function generateImageData(initialMemory: number[]): ImageData {
 
     return resultArray;
   }, []);
+
+  console.log("Last output", computer.outputs[computer.outputs.length - 1]);
+
+  return { imageData, dust };
 }
 
 export function asciiToPixel(tile: number): Pixel {
@@ -280,11 +296,18 @@ function rawInstructionToInstruction(rawInstruction: string): string[] {
   return instructionParts;
 }
 
-function instructionToAsciiInstruction(instruction: string[]): number[] {
+export function instructionToAsciiInstruction(instruction: string[]): number[] {
   return instruction
     .flatMap((part) => part.split("").map((s) => s.charCodeAt(0)))
     .flatMap((x) => [44, x])
+    .flat()
     .slice(1);
+}
+
+export function instructionToAsciiInstructionWithNewline(
+  instruction: string[],
+): number[] {
+  return [...instructionToAsciiInstruction(instruction), 10];
 }
 
 type BestFunctionCandidate = {
@@ -324,11 +347,14 @@ function getBestFunctionCandidates(
         // console.log(substring, numMatches);
         if (numMatches > 1 && numMatches < 20) {
           const total = numMatches * substring.length;
-          const instruction = rawInstructionToInstruction(substring);
+          const instruction = substring
+            .split(/([A-Z])/)
+            .filter((s) => s !== "");
+
           const asciiInstruction = instructionToAsciiInstruction(instruction);
           const ratio = total / numMatches;
 
-          if (asciiInstruction.length <= 20 && ratio > 1) {
+          if (asciiInstruction.length <= 30 && ratio > 1) {
             bestFunctionCandidates.push({
               matches: numMatches,
               total,
@@ -341,11 +367,9 @@ function getBestFunctionCandidates(
     } while (numMatches > 1 && end <= fullInstructionStr.length);
   }
 
-  bestFunctionCandidates.sort(
-    (a, b) => b.instruction.length - a.instruction.length,
-  );
-
-  return bestFunctionCandidates.slice(0, 5);
+  // If we could somehow find actually the best candidates that would be cool
+  bestFunctionCandidates.sort((a, b) => b.ratio - a.ratio);
+  return bestFunctionCandidates.slice(0, 30);
 }
 
 // Thanks ChatGPT
@@ -438,7 +462,13 @@ export function explore(
   );
 }
 
-export function findPathToEnd(imageData: ImageData) {
+export function findValidInstructionAndFunctionsToEnd(imageData: ImageData): {
+  instruction: string[];
+  a: string[];
+  b: string[];
+  c: string[];
+  instructionWithoutFunctions: string[];
+} {
   const {
     x: startX,
     y: startY,
@@ -460,67 +490,59 @@ export function findPathToEnd(imageData: ImageData) {
     ),
   );
 
-  console.log(`Found ${instructions.length} possible routes`);
+  // Seems like the first possible route always works...
+  const instruction = rawInstructionToInstruction(instructions[0]);
 
-  for (let i = 0; i < instructions.length; i++) {
-    const instruction = rawInstructionToInstruction(instructions[i]);
+  const bestASubstrings = getBestFunctionCandidates(instruction.join(""), []);
 
-    console.log(
-      `Checking ${instruction.join(",")} (${i + 1}/${instructions.length})`,
+  for (let bestASubstring of bestASubstrings) {
+    const fullInstructionStringsWithA = fullReplacements(
+      instruction.join(""),
+      bestASubstring.instruction.join(""),
+      "A",
     );
 
-    const bestASubstrings = getBestFunctionCandidates(instruction.join(""), []);
-
-    for (let bestASubstring of bestASubstrings) {
-      const fullInstructionStringsWithA = fullReplacements(
-        instruction.join(""),
-        bestASubstring.instruction.join(""),
-        "A",
+    for (let fullInstructionStringWithA of fullInstructionStringsWithA) {
+      const bestBSubstrings = getBestFunctionCandidates(
+        fullInstructionStringWithA,
+        ["A"],
       );
 
-      for (let fullInstructionStringWithA of fullInstructionStringsWithA) {
-        const bestBSubstrings = getBestFunctionCandidates(
+      for (let bestBSubstring of bestBSubstrings) {
+        const fullInstructionStringsWithAB = fullReplacements(
           fullInstructionStringWithA,
-          ["A"],
+          bestBSubstring.instruction.join(""),
+          "B",
         );
 
-        for (let bestBSubstring of bestBSubstrings) {
-          const fullInstructionStringsWithAB = fullReplacements(
-            fullInstructionStringWithA,
-            bestBSubstring.instruction.join(""),
-            "B",
+        for (let fullInstructionStringWithAB of fullInstructionStringsWithAB) {
+          const bestCSubstrings = getBestFunctionCandidates(
+            fullInstructionStringWithAB,
+            ["A", "B"],
           );
 
-          for (let fullInstructionStringWithAB of fullInstructionStringsWithAB) {
-            const bestCSubstrings = getBestFunctionCandidates(
+          for (let bestCSubstring of bestCSubstrings) {
+            const fullInstructionStringsWithABC = fullReplacements(
               fullInstructionStringWithAB,
-              ["A", "B"],
+              bestCSubstring.instruction.join(""),
+              "C",
             );
 
-            for (let bestCSubstring of bestCSubstrings) {
-              const fullInstructionStringsWithABC = fullReplacements(
-                fullInstructionStringWithAB,
-                bestCSubstring.instruction.join(""),
-                "C",
+            for (let fullInstructionStringWithABC of fullInstructionStringsWithABC) {
+              const isValidSolution = !(
+                fullInstructionStringWithABC.includes("L") ||
+                fullInstructionStringWithABC.includes("R") ||
+                fullInstructionStringWithABC.includes("F")
               );
 
-              for (let fullInstructionStringWithABC of fullInstructionStringsWithABC) {
-                const isValidSolution = !(
-                  fullInstructionStringWithABC.includes("L") ||
-                  fullInstructionStringWithABC.includes("R") ||
-                  fullInstructionStringWithABC.includes("F")
-                );
-
-                if (isValidSolution) {
-                  console.log({
-                    a: bestASubstring.instruction.join(""),
-                    b: bestBSubstring.instruction.join(""),
-                    c: bestCSubstring.instruction.join(""),
-                    f: fullInstructionStringWithABC,
-                  });
-
-                  throw new Error("Actually found a valid solution lol");
-                }
+              if (isValidSolution) {
+                return {
+                  a: bestASubstring.instruction,
+                  b: bestBSubstring.instruction,
+                  c: bestCSubstring.instruction,
+                  instruction: fullInstructionStringWithABC.split(""),
+                  instructionWithoutFunctions: instruction,
+                };
               }
             }
           }
@@ -528,8 +550,6 @@ export function findPathToEnd(imageData: ImageData) {
       }
     }
   }
-
-  console.log(instructions[0]);
 
   throw new Error("Didn't find any solution :(");
 }
