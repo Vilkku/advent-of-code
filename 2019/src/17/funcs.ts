@@ -175,17 +175,22 @@ function turnLeft(direction: Direction): Direction {
   }
 }
 
-function getNextInstructionAndData(
+interface InstructionsAndData {
+  x: number;
+  y: number;
+  instructions: ("R" | "L" | "F")[];
+  direction: Direction;
+}
+
+function getNextInstructionsAndData(
   currentX: number,
   currentY: number,
   directionForward: Direction,
   imageData: ImageData,
-): {
-  x: number;
-  y: number;
-  instruction: "R" | "L" | "F";
-  direction: Direction;
-} | null {
+  visitedCoordinates: string[],
+): InstructionsAndData[] {
+  const nextInstructionsAndData: InstructionsAndData[] = [];
+
   const [nextXForward, nextYForward] = getNextXY(
     currentX,
     currentY,
@@ -196,12 +201,12 @@ function getNextInstructionAndData(
     imageData[nextYForward]?.[nextXForward] &&
     imageData[nextYForward][nextXForward] === tiles.scaffold
   ) {
-    return {
+    nextInstructionsAndData.push({
       x: nextXForward,
       y: nextYForward,
-      instruction: "F",
+      instructions: ["F"],
       direction: directionForward,
-    };
+    });
   }
 
   const directionRight = turnRight(directionForward);
@@ -215,12 +220,12 @@ function getNextInstructionAndData(
     imageData[nextYRight]?.[nextXRight] &&
     imageData[nextYRight][nextXRight] === tiles.scaffold
   ) {
-    return {
-      x: currentX,
-      y: currentY,
-      instruction: "R",
+    nextInstructionsAndData.push({
+      x: nextXRight,
+      y: nextYRight,
+      instructions: ["R", "F"],
       direction: directionRight,
-    };
+    });
   }
 
   const directionLeft = turnLeft(directionForward);
@@ -230,72 +235,77 @@ function getNextInstructionAndData(
     imageData[nextYLeft]?.[nextXLeft] &&
     imageData[nextYLeft][nextXLeft] === tiles.scaffold
   ) {
-    return {
-      x: currentX,
-      y: currentY,
-      instruction: "L",
+    nextInstructionsAndData.push({
+      x: nextXLeft,
+      y: nextYLeft,
+      instructions: ["L", "F"],
       direction: directionLeft,
-    };
+    });
   }
 
-  return null;
+  if (nextInstructionsAndData.length > 1) {
+    return nextInstructionsAndData.filter(
+      (nextInstructionAndData) =>
+        !visitedCoordinates.includes(
+          `${nextInstructionAndData.x},${nextInstructionAndData.y}`,
+        ),
+    );
+  }
+
+  return nextInstructionsAndData;
 }
 
-function rawInstructionToInstruction(rawInstruction: string): number[] {
-  let instructionParts: number[] = [];
+function rawInstructionToInstruction(rawInstruction: string): string[] {
+  const instructionParts: string[] = [];
   const rawInstructionArr = rawInstruction.split("");
   let fCounter = 0;
 
   for (let i = 0; i < rawInstructionArr.length; i++) {
     if (rawInstructionArr[i] !== "F") {
       if (fCounter > 0) {
-        instructionParts.push(
-          ...fCounter
-            .toString()
-            .split("")
-            .map((s) => s.charCodeAt(0)),
-        );
+        instructionParts.push(fCounter.toString());
         fCounter = 0;
       }
 
-      instructionParts.push(rawInstructionArr[i].charCodeAt(0));
+      instructionParts.push(rawInstructionArr[i]);
     } else {
       fCounter++;
     }
   }
 
   if (fCounter > 0) {
-    instructionParts.push(
-      ...fCounter
-        .toString()
-        .split("")
-        .map((s) => s.charCodeAt(0)),
-    );
+    instructionParts.push(fCounter.toString());
   }
 
-  return instructionParts.flatMap((x) => [44, x]).slice(1);
+  return instructionParts;
 }
 
-type BestSubstring = {
-  substring: string;
+function instructionToAsciiInstruction(instruction: string[]): number[] {
+  return instruction
+    .flatMap((part) => part.split("").map((s) => s.charCodeAt(0)))
+    .flatMap((x) => [44, x])
+    .slice(1);
+}
+
+type BestFunctionCandidate = {
   matches: number;
   total: number;
-  instruction: number[];
+  instruction: string[];
   ratio: number;
 };
 
-function getBestSubstrings(
-  fullString: string,
+function getBestFunctionCandidates(
+  fullInstructionStr: string,
   invalidCharacters: string[],
-): BestSubstring[] {
-  const bestSubstrings: BestSubstring[] = [];
+): BestFunctionCandidate[] {
+  const bestFunctionCandidates: BestFunctionCandidate[] = [];
 
-  for (let start = 0; start < fullString.length; start++) {
+  for (let start = 0; start < fullInstructionStr.length; start++) {
     let numMatches = 0;
     let end = start + 1;
 
     do {
-      const substring = fullString.substring(start, end);
+      const substring = fullInstructionStr.substring(start, end);
 
       if (
         invalidCharacters.some((invalidCharacter) =>
@@ -304,7 +314,9 @@ function getBestSubstrings(
       ) {
         numMatches = 0;
       } else {
-        const matches = [...fullString.matchAll(new RegExp(substring, "g"))];
+        const matches = [
+          ...fullInstructionStr.matchAll(new RegExp(substring, "g")),
+        ];
 
         numMatches = matches.length;
         end++;
@@ -313,11 +325,11 @@ function getBestSubstrings(
         if (numMatches > 1 && numMatches < 20) {
           const total = numMatches * substring.length;
           const instruction = rawInstructionToInstruction(substring);
+          const asciiInstruction = instructionToAsciiInstruction(instruction);
           const ratio = total / numMatches;
 
-          if (instruction.length <= 20 && ratio > 1) {
-            bestSubstrings.push({
-              substring,
+          if (asciiInstruction.length <= 20 && ratio > 1) {
+            bestFunctionCandidates.push({
               matches: numMatches,
               total,
               instruction,
@@ -326,12 +338,14 @@ function getBestSubstrings(
           }
         }
       }
-    } while (numMatches > 1 && end <= fullString.length);
+    } while (numMatches > 1 && end <= fullInstructionStr.length);
   }
 
-  bestSubstrings.sort((a, b) => b.substring.length - a.substring.length);
+  bestFunctionCandidates.sort(
+    (a, b) => b.instruction.length - a.instruction.length,
+  );
 
-  return bestSubstrings.slice(0, 30);
+  return bestFunctionCandidates.slice(0, 5);
 }
 
 // Thanks ChatGPT
@@ -376,6 +390,54 @@ function fullReplacements(
   return Array.from(results);
 }
 
+export function explore(
+  imageData: ImageData,
+  instructionAndData: InstructionsAndData,
+  instructions: string[],
+  visitedCoordinates: string[],
+): string | string[] {
+  const nextInstructionsAndData = getNextInstructionsAndData(
+    instructionAndData.x,
+    instructionAndData.y,
+    instructionAndData.direction,
+    imageData,
+    visitedCoordinates,
+  );
+
+  if (nextInstructionsAndData.length === 0) {
+    const routeComplete = imageData.every((row, y) =>
+      row.every((tile, x) => {
+        if (tile !== tiles.scaffold) {
+          return true;
+        }
+
+        return [
+          ...visitedCoordinates,
+          `${instructionAndData.x},${instructionAndData.y}`,
+        ].includes(`${x},${y}`);
+      }),
+    );
+
+    if (!routeComplete) {
+      return [];
+    }
+
+    return instructions.join("");
+  }
+
+  return nextInstructionsAndData.flatMap((nextInstructionAndData) =>
+    explore(
+      imageData,
+      nextInstructionAndData,
+      [...instructions, ...nextInstructionAndData.instructions],
+      [
+        ...visitedCoordinates,
+        `${instructionAndData.x},${instructionAndData.y}`,
+      ],
+    ),
+  );
+}
+
 export function findPathToEnd(imageData: ImageData) {
   const {
     x: startX,
@@ -383,84 +445,82 @@ export function findPathToEnd(imageData: ImageData) {
     direction: startDirection,
   } = getStartAndDirection(imageData);
 
-  const instructions = [];
-  let x = startX;
-  let y = startY;
-  let direction = startDirection;
-  let complete = false;
-
-  while (!complete) {
-    const nextInstructionAndData = getNextInstructionAndData(
-      x,
-      y,
-      direction,
+  const instructions = getNextInstructionsAndData(
+    startX,
+    startY,
+    startDirection,
+    imageData,
+    [`${startX},${startY}`],
+  ).flatMap((nextInstructionAndData) =>
+    explore(
       imageData,
+      nextInstructionAndData,
+      nextInstructionAndData.instructions,
+      [`${startX},${startY}`],
+    ),
+  );
+
+  console.log(`Found ${instructions.length} possible routes`);
+
+  for (let i = 0; i < instructions.length; i++) {
+    const instruction = rawInstructionToInstruction(instructions[i]);
+
+    console.log(
+      `Checking ${instruction.join(",")} (${i + 1}/${instructions.length})`,
     );
 
-    if (!nextInstructionAndData) {
-      complete = true;
-    } else {
-      instructions.push(nextInstructionAndData.instruction);
-      x = nextInstructionAndData.x;
-      y = nextInstructionAndData.y;
-      direction = nextInstructionAndData.direction;
-    }
-  }
+    const bestASubstrings = getBestFunctionCandidates(instruction.join(""), []);
 
-  let fullInstructionString = instructions.join("");
-
-  console.log(fullInstructionString);
-
-  const bestASubstrings = getBestSubstrings(fullInstructionString, []);
-
-  for (let bestASubstring of bestASubstrings) {
-    const fullInstructionStringsWithA = fullReplacements(
-      fullInstructionString,
-      bestASubstring.substring,
-      "A",
-    );
-
-    for (let fullInstructionStringWithA of fullInstructionStringsWithA) {
-      const bestBSubstrings = getBestSubstrings(fullInstructionStringWithA, [
+    for (let bestASubstring of bestASubstrings) {
+      const fullInstructionStringsWithA = fullReplacements(
+        instruction.join(""),
+        bestASubstring.instruction.join(""),
         "A",
-      ]);
+      );
 
-      for (let bestBSubstring of bestBSubstrings) {
-        const fullInstructionStringsWithAB = fullReplacements(
+      for (let fullInstructionStringWithA of fullInstructionStringsWithA) {
+        const bestBSubstrings = getBestFunctionCandidates(
           fullInstructionStringWithA,
-          bestBSubstring.substring,
-          "B",
+          ["A"],
         );
 
-        for (let fullInstructionStringWithAB of fullInstructionStringsWithAB) {
-          const bestCSubstrings = getBestSubstrings(
-            fullInstructionStringWithAB,
-            ["A", "B"],
+        for (let bestBSubstring of bestBSubstrings) {
+          const fullInstructionStringsWithAB = fullReplacements(
+            fullInstructionStringWithA,
+            bestBSubstring.instruction.join(""),
+            "B",
           );
 
-          for (let bestCSubstring of bestCSubstrings) {
-            const fullInstructionStringsWithABC = fullReplacements(
+          for (let fullInstructionStringWithAB of fullInstructionStringsWithAB) {
+            const bestCSubstrings = getBestFunctionCandidates(
               fullInstructionStringWithAB,
-              bestCSubstring.substring,
-              "C",
+              ["A", "B"],
             );
 
-            for (let fullInstructionStringWithABC of fullInstructionStringsWithABC) {
-              const isValidSolution = !(
-                fullInstructionStringWithABC.includes("L") ||
-                fullInstructionStringWithABC.includes("R") ||
-                fullInstructionStringWithABC.includes("F")
+            for (let bestCSubstring of bestCSubstrings) {
+              const fullInstructionStringsWithABC = fullReplacements(
+                fullInstructionStringWithAB,
+                bestCSubstring.instruction.join(""),
+                "C",
               );
 
-              console.log({
-                a: bestASubstring.substring,
-                b: bestBSubstring.substring,
-                c: bestCSubstring.substring,
-                f: fullInstructionStringWithABC,
-              });
+              for (let fullInstructionStringWithABC of fullInstructionStringsWithABC) {
+                const isValidSolution = !(
+                  fullInstructionStringWithABC.includes("L") ||
+                  fullInstructionStringWithABC.includes("R") ||
+                  fullInstructionStringWithABC.includes("F")
+                );
 
-              if (isValidSolution) {
-                throw new Error("Actually found a valid solution lol");
+                if (isValidSolution) {
+                  console.log({
+                    a: bestASubstring.instruction.join(""),
+                    b: bestBSubstring.instruction.join(""),
+                    c: bestCSubstring.instruction.join(""),
+                    f: fullInstructionStringWithABC,
+                  });
+
+                  throw new Error("Actually found a valid solution lol");
+                }
               }
             }
           }
@@ -468,6 +528,8 @@ export function findPathToEnd(imageData: ImageData) {
       }
     }
   }
+
+  console.log(instructions[0]);
 
   throw new Error("Didn't find any solution :(");
 }

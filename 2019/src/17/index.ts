@@ -43,6 +43,7 @@ const testImageData = [
 ];
 
 printAnswer("Part 2", () => {
+  // printImageData(testImageData, asciiToPixel);
   findPathToEnd(imageData);
   const part2InitialMemory = [...initialMemory];
   part2InitialMemory[0] = 2;
