@@ -3,8 +3,7 @@ import {
   createDoorNode,
   createFloorNode,
   createKeyNode,
-  getClosestKey,
-  getNumberOfStepsByGoingToClosestKey,
+  fewestSteps,
   parseVault,
   type Vault,
 } from "./funcs.ts";
@@ -16,13 +15,6 @@ const example1 = `#########
 
 const example2 = `########################
 #f.D.E.e.C.b.A.@.a.B.c.#
-######################.#
-#d.....................#
-########################
-`;
-
-const example2DorE = `########################
-#f.D.E.e.............@.#
 ######################.#
 #d.....................#
 ########################
@@ -45,79 +37,13 @@ test("parseVault", () => {
   });
 });
 
-test("getClosestKey", () => {
-  const keyInventory = new Set<string>();
-
-  expect(getClosestKey({ ...example1Vault }, "5,1", keyInventory)).toEqual({
-    node: createKeyNode(7, 1, "a", expect.any(Array)),
-    distance: 2,
-  });
-
-  expect(keyInventory).toEqual(new Set("a"));
-
-  expect(
-    getClosestKey(
-      { ...example1Vault, "7,1": createFloorNode(7, 1, ["6,1"]) },
-      "7,1",
-      keyInventory,
-    ),
-  ).toEqual({ node: createKeyNode(1, 1, "b", expect.any(Array)), distance: 6 });
-
-  expect(keyInventory).toEqual(new Set("b"));
-
-  expect(
-    getClosestKey(
-      {
-        ...example1Vault,
-        "1,1": createFloorNode(1, 1, ["2,1"]),
-        "7,1": createFloorNode(7, 1, ["6,1"]),
-      },
-      "1,1",
-      keyInventory,
-    ),
-  ).toBe(null);
-
-  expect(keyInventory).toEqual(new Set("b"));
-});
-
-test.only("getClosestKey D or E", () => {
-  const { vault, startPosition } = parseVault(example2DorE);
-  const keyInventory = new Set<string>();
-
-  expect(
-    getClosestKey(
-      {
-        ...vault,
-      },
-      startPosition,
-      keyInventory,
-    ),
-  ).toBe({
-    node: {
-      type: "key",
-      x: expect.any(Number),
-      y: expect.any(Number),
-      key: "d",
-      links: expect.any(Array),
-    },
-    distance: expect.any(Number),
-  });
-
-  expect(keyInventory).toEqual(new Set("d"));
-});
-
-test("getNumberOfStepsByGoingToClosestKey", () => {
-  expect(getNumberOfStepsByGoingToClosestKey({ ...example1Vault }, "5,1")).toBe(
-    8,
-  );
+test("fewestSteps", () => {
+  expect(fewestSteps(example1Vault, "5,1", new Set<string>())).toBe(8);
 
   const { vault: example2Vault, startPosition: example2StartPosition } =
     parseVault(example2);
 
   expect(
-    getNumberOfStepsByGoingToClosestKey(
-      { ...example2Vault },
-      example2StartPosition,
-    ),
+    fewestSteps(example2Vault, example2StartPosition, new Set<string>()),
   ).toBe(86);
 });

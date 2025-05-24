@@ -122,77 +122,83 @@ export function createDoorNode(
   return { type: "door", door, x, y, links };
 }
 
-export function getClosestKey(
-  vault: Vault,
-  currentLocation: string,
-  keyInventory: Set<string>,
-): { node: KeyNode; distance: number } | null {
-  const queue: [string, number][] = [[currentLocation, 0]];
-  const visited = new Set();
-
-  console.log(`Starting at ${currentLocation} with keys ${[...keyInventory]}`);
-
-  while (queue.length) {
-    const next = queue.shift();
-
-    if (!next) {
-      continue;
-    }
-
-    const [vertex, distance] = next;
-
-    if (visited.has(vertex)) {
-      continue;
-    }
-
-    visited.add(vertex);
-
-    const node = vault[vertex];
-    if (!node) {
-      throw new Error(`${vertex} not found in nodes`);
-    }
-
-    if (node.type === "door") {
-      if (keyInventory.has(node.door)) {
-        console.log(`Opened door ${node.door}`);
-        keyInventory.delete(node.door);
-        vault[vertex] = createFloorNode(node.x, node.y, node.links);
-      } else {
-        console.log(`Cannot open door ${node.door}`);
-        continue;
-      }
-    } else if (node.type === "key") {
-      console.log(`Adding key ${node.key} to inventory`);
-      keyInventory.add(node.key);
-      vault[vertex] = createFloorNode(node.x, node.y, node.links);
-      return { node, distance };
-    }
-
-    for (const neighbor of node.links) {
-      if (!visited.has(neighbor)) {
-        queue.push([neighbor, distance + 1]);
-      }
-    }
-  }
-
-  return null;
+interface KeyNodeAndDistance {
+  node: KeyNode;
+  distance: number;
 }
 
-export function getNumberOfStepsByGoingToClosestKey(
-  initialVault: Vault,
-  startLocation: string,
-): number {
-  const keyInventory = new Set<string>();
-  const vault: Vault = { ...initialVault };
-  let currentLocation = startLocation;
-  let steps = 0;
-  let closestKey = getClosestKey(vault, currentLocation, keyInventory);
+function getReachableKeys(
+  vault: Vault,
+  start: string,
+  inventory: Set<string>,
+): KeyNodeAndDistance[] {
+  const queue: [string, number][] = [[start, 0]];
+  const visited = new Set<string>([start]);
+  const results: KeyNodeAndDistance[] = [];
 
-  while (closestKey !== null) {
-    currentLocation = createNodeKey(closestKey.node.x, closestKey.node.y);
-    steps += closestKey.distance;
-    closestKey = getClosestKey(vault, currentLocation, keyInventory);
+  while (queue.length) {
+    const [loc, dist] = queue.shift()!;
+
+    for (const nbr of vault[loc].links) {
+      if (visited.has(nbr)) continue;
+      visited.add(nbr);
+
+      const node = vault[nbr]!;
+      if (node.type === "door" && !inventory.has(node.door)) {
+        continue;
+      }
+
+      if (node.type === "key") {
+        results.push({ node, distance: dist + 1 });
+      }
+
+      queue.push([nbr, dist + 1]);
+    }
   }
 
-  return steps;
+  return results;
+}
+
+function stateId(loc: string, inventory: Set<string>) {
+  return loc + "|" + [...inventory].sort().join(",");
+}
+
+export function fewestSteps(
+  vault: Vault,
+  loc: string,
+  inventory: Set<string>,
+  memo = new Map<string, number>(),
+): number {
+  const id = stateId(loc, inventory);
+  if (memo.has(id)) {
+    return memo.get(id)!;
+  }
+
+  // 1) which keys can I grab next?
+  const nextKeys = getReachableKeys(vault, loc, inventory);
+  if (nextKeys.length === 0) {
+    // no more reachable keys
+    return 0;
+  }
+
+  // 2) try each branch, pick the min
+  let best = Infinity;
+  for (const { node, distance } of nextKeys) {
+    // a) clone inventory + vault map
+    const inv2 = new Set(inventory);
+    inv2.add(node.key);
+
+    const keyPos = `${node.x},${node.y}`;
+    const vault2: Vault = { ...vault };
+    // replace that key-node with a floor-node
+    vault2[keyPos] = createFloorNode(node.x, node.y, node.links);
+
+    // b) recurse from the new location
+    const future = fewestSteps(vault2, keyPos, inv2, memo);
+
+    best = Math.min(best, distance + future);
+  }
+
+  memo.set(id, best);
+  return best;
 }
