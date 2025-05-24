@@ -1,14 +1,12 @@
 import { inputToRows } from "../util/input.ts";
 
-export interface Vault {
-  currentPosition: string;
-  nodes: Record<string, VaultNode>;
-  keys: [];
-}
+export type Vault = Record<string, VaultNode>;
 
 type VaultNode = FloorNode | KeyNode | DoorNode;
 
 interface BaseVaultNode {
+  x: number;
+  y: number;
   links: string[];
 }
 
@@ -26,9 +24,16 @@ interface DoorNode extends BaseVaultNode {
   door: string;
 }
 
-export function parseVault(input: string): Vault {
+function createNodeKey(x: number, y: number) {
+  return `${x},${y}`;
+}
+
+export function parseVault(input: string): {
+  startPosition: string;
+  vault: Vault;
+} {
   let currentPosition: string | undefined;
-  const nodes: Record<string, VaultNode> = {};
+  const vault: Record<string, VaultNode> = {};
   const rows = inputToRows(input);
 
   for (let y = 0; y < rows.length; y++) {
@@ -39,7 +44,7 @@ export function parseVault(input: string): Vault {
         continue;
       }
 
-      const node = parseNode(row[x]);
+      const node = parseNode(row[x], x, y);
 
       [
         [x, y - 1],
@@ -54,15 +59,15 @@ export function parseVault(input: string): Vault {
           linkY < rows.length &&
           rows[linkY][linkX] !== "#"
         ) {
-          node.links.push(`${linkX},${linkY}`);
+          node.links.push(createNodeKey(linkX, linkY));
         }
       });
 
       if (row[x] === "@") {
-        currentPosition = `${x},${y}`;
+        currentPosition = createNodeKey(x, y);
       }
 
-      nodes[`${x},${y}`] = node;
+      vault[createNodeKey(x, y)] = node;
     }
   }
 
@@ -71,77 +76,123 @@ export function parseVault(input: string): Vault {
   }
 
   return {
-    currentPosition,
-    nodes,
-    keys: [],
+    startPosition: currentPosition,
+    vault,
   };
 }
 
-function parseNode(char: string): VaultNode {
+function parseNode(char: string, x: number, y: number): VaultNode {
   // When parsing node assume @ represents a floor
   if (char === "." || char === "@") {
-    return createFloorNode();
+    return createFloorNode(x, y);
   }
 
   const charLowerCase = char.toLowerCase();
 
   if (char === charLowerCase) {
-    return createKeyNode(charLowerCase);
+    return createKeyNode(x, y, charLowerCase);
   }
 
-  return createDoorNode(charLowerCase);
+  return createDoorNode(x, y, charLowerCase);
 }
 
-export function createFloorNode(links: string[] = []): FloorNode {
-  return { type: "floor", links };
+export function createFloorNode(
+  x: number,
+  y: number,
+  links: string[] = [],
+): FloorNode {
+  return { type: "floor", x, y, links };
 }
 
-export function createKeyNode(key: string, links: string[] = []): KeyNode {
-  return { type: "key", key, links };
+export function createKeyNode(
+  x: number,
+  y: number,
+  key: string,
+  links: string[] = [],
+): KeyNode {
+  return { type: "key", key, x, y, links };
 }
 
-export function createDoorNode(door: string, links: string[] = []): DoorNode {
-  return { type: "door", door, links };
+export function createDoorNode(
+  x: number,
+  y: number,
+  door: string,
+  links: string[] = [],
+): DoorNode {
+  return { type: "door", door, x, y, links };
 }
 
-export function bfs(nodes: Record<string, VaultNode>, start: string) {
-  const queue = [start];
+export function getClosestKey(
+  vault: Vault,
+  currentLocation: string,
+  keyInventory: Set<string>,
+): { node: KeyNode; distance: number } | null {
+  const queue: [string, number][] = [[currentLocation, 0]];
   const visited = new Set();
-  const result = [];
+
+  console.log(`Starting at ${currentLocation} with keys ${[...keyInventory]}`);
 
   while (queue.length) {
-    const vertex = queue.shift();
+    const next = queue.shift();
 
-    if (vertex && !visited.has(vertex)) {
-      visited.add(vertex);
-      result.push(vertex);
+    if (!next) {
+      continue;
+    }
 
-      for (const neighbor of nodes[vertex].links) {
-        queue.push(neighbor);
+    const [vertex, distance] = next;
+
+    if (visited.has(vertex)) {
+      continue;
+    }
+
+    visited.add(vertex);
+
+    const node = vault[vertex];
+    if (!node) {
+      throw new Error(`${vertex} not found in nodes`);
+    }
+
+    if (node.type === "door") {
+      if (keyInventory.has(node.door)) {
+        console.log(`Opened door ${node.door}`);
+        keyInventory.delete(node.door);
+        vault[vertex] = createFloorNode(node.x, node.y, node.links);
+      } else {
+        console.log(`Cannot open door ${node.door}`);
+        continue;
+      }
+    } else if (node.type === "key") {
+      console.log(`Adding key ${node.key} to inventory`);
+      keyInventory.add(node.key);
+      vault[vertex] = createFloorNode(node.x, node.y, node.links);
+      return { node, distance };
+    }
+
+    for (const neighbor of node.links) {
+      if (!visited.has(neighbor)) {
+        queue.push([neighbor, distance + 1]);
       }
     }
   }
 
-  return result;
+  return null;
 }
 
-export function dfs(nodes: Record<string, VaultNode>, start: string) {
-  const stack = [start];
-  const visited = new Set();
-  const result = [];
+export function getNumberOfStepsByGoingToClosestKey(
+  initialVault: Vault,
+  startLocation: string,
+): number {
+  const keyInventory = new Set<string>();
+  const vault: Vault = { ...initialVault };
+  let currentLocation = startLocation;
+  let steps = 0;
+  let closestKey = getClosestKey(vault, currentLocation, keyInventory);
 
-  while (stack.length) {
-    const vertex = stack.pop();
-
-    if (vertex && !visited.has(vertex)) {
-      visited.add(vertex);
-      result.push(vertex);
-
-      for (const neighbor of nodes[vertex].links) {
-        stack.push(neighbor);
-      }
-    }
+  while (closestKey !== null) {
+    currentLocation = createNodeKey(closestKey.node.x, closestKey.node.y);
+    steps += closestKey.distance;
+    closestKey = getClosestKey(vault, currentLocation, keyInventory);
   }
 
-  return result;
+  return steps;
 }
