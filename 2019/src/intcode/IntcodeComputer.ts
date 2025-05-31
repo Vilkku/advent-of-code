@@ -12,6 +12,7 @@ export class IntcodeComputer {
   relativeBase: number = 0;
   private inputQueue: number[] = [];
   outputs: number[] = [];
+  debug = false;
 
   constructor(initialMemory: number[]) {
     this.memory = [...initialMemory];
@@ -23,6 +24,14 @@ export class IntcodeComputer {
     while (readFromMemory(this.memory, this.pointer) !== OPCODE_HALT) {
       const instruction = parseInstruction(this.pointer, this.memory);
 
+      if (instruction.type === "input") {
+        this.log("Input instruction");
+        this.log("Input queue contains", this.inputQueue);
+        this.log(
+          `Calling getInputInstructionResult() with input ${this.inputQueue[0]}`,
+        );
+      }
+
       const instructionResult =
         instruction.type === "input"
           ? getInputInstructionResult(
@@ -31,6 +40,12 @@ export class IntcodeComputer {
               this.inputQueue.shift(),
             )
           : getInstructionResult(instruction, this.memory, this.relativeBase);
+
+      if (instruction.type === "input") {
+        this.log("Input queue now contains", this.inputQueue);
+      }
+
+      this.log(instructionResult.type);
 
       switch (instructionResult.type) {
         case "update-value":
@@ -95,5 +110,11 @@ export class IntcodeComputer {
     }
 
     return computer;
+  }
+
+  private log(...data: any[]) {
+    if (this.debug) {
+      console.log(...data);
+    }
   }
 }
