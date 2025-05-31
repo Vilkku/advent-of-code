@@ -6,44 +6,44 @@ export function mapTractorBeam(
   width: number,
   height: number,
 ): ImageData {
-  const computer = new IntcodeComputer(initialMemory);
-  let computerStatus = computer.run();
-  let x = 0;
-  let y = 0;
   const map: number[][] = [];
 
-  while (computerStatus.status !== "done") {
-    switch (computerStatus.status) {
-      case "output":
-        if (!map[y]) {
-          map[y] = [];
+  for (let y = 0; y < height; y++) {
+    map[y] = Array(width).fill(0);
+    const startY = y === 0 ? 0 : map[y - 1].indexOf(1);
+    let beamEncountered = false;
+    let endOfBeamReached = false;
+
+    for (let x = startY; x < width; x++) {
+      if (!endOfBeamReached) {
+        const computer = new IntcodeComputer(initialMemory);
+        let computerStatus = computer.run();
+
+        while (computerStatus.status !== "done") {
+          switch (computerStatus.status) {
+            case "output":
+              map[y][x] = computerStatus.output;
+
+              if (!beamEncountered && computerStatus.output === 1) {
+                beamEncountered = true;
+              }
+
+              if (beamEncountered && computerStatus.output === 0) {
+                endOfBeamReached = true;
+              }
+
+              computerStatus = computer.run();
+              break;
+            case "input":
+              computer.enqueueInput(x);
+              computer.enqueueInput(y);
+              computerStatus = computer.run();
+              break;
+          }
         }
-
-        map[y][x] = computerStatus.output;
-
-        console.log(`Output: ${x},${y}: ${computerStatus.output}`);
-
-        if (x === width - 1) {
-          x = 0;
-          y++;
-        } else {
-          x++;
-        }
-
-        if (y === height) {
-          return map;
-        }
-
-        computerStatus = computer.run();
-        break;
-      case "input":
-        console.log(`Input: ${x},${y}`);
-        computer.enqueueInput(x);
-        computer.enqueueInput(y);
-        computerStatus = computer.run();
-        break;
+      }
     }
   }
 
-  throw new Error("Unexpected done status");
+  return map;
 }

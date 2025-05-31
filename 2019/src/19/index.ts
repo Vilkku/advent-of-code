@@ -7,18 +7,22 @@ const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
 );
 
-printAnswer("Part 1", () => {
-  const tractorBeamMap = mapTractorBeam(initialMemory, 2, 2);
+printAnswer(
+  "Part 1",
+  () => {
+    const tractorBeamMap = mapTractorBeam(initialMemory, 50, 50);
 
-  printImageData(tractorBeamMap);
+    printImageData(tractorBeamMap);
 
-  const affectedPointsNum = tractorBeamMap.reduce((sum, row) => {
-    return (
-      sum +
-      row.reduce((rowSum, point) => {
-        return rowSum + point;
-      }, 0)
-    );
-  }, 0);
-  return affectedPointsNum;
-});
+    const affectedPointsNum = tractorBeamMap.reduce((sum, row) => {
+      return (
+        sum +
+        row.reduce((rowSum, point) => {
+          return rowSum + point;
+        }, 0)
+      );
+    }, 0);
+    return affectedPointsNum;
+  },
+  126,
+);
