@@ -1,7 +1,7 @@
 import { printAnswer } from "../util/benchmark";
-import { getInput, inputToIntcodeComputerMemory, toInt } from "../util/input";
+import { getInput, inputToIntcodeComputerMemory } from "../util/input";
 import { printImageData } from "../util/map";
-import { mapTractorBeam } from "./funcs";
+import { mapTractorBeam, mapTractorBeamAndCheckIfSantaFits } from "./funcs";
 
 const initialMemory = inputToIntcodeComputerMemory(
   await getInput(import.meta.dir, "input.txt"),
@@ -25,4 +25,20 @@ printAnswer(
     return affectedPointsNum;
   },
   126,
+);
+
+printAnswer(
+  "Part 2",
+  () => {
+    const tractorBeamMap = mapTractorBeamAndCheckIfSantaFits(
+      initialMemory,
+      100,
+      100,
+    );
+
+    return (
+      tractorBeamMap.santaCoords[0] * 10000 + tractorBeamMap.santaCoords[1]
+    );
+  },
+  11351625,
 );
