@@ -1,5 +1,5 @@
 import { IntcodeComputer } from "../intcode/IntcodeComputer";
-import { type ImageData, type Pixel, pixels } from "../util/map.ts";
+import { type ImageData } from "../util/map.ts";
 
 export function mapTractorBeam(
   initialMemory: number[],
