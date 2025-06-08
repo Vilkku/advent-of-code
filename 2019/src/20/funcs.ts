@@ -1,5 +1,5 @@
 import { inputToRows } from "../util/input.ts";
-import type { Graph } from "../util/dijkstra.ts";
+import type { Graph } from "../util/bfs.ts";
 
 export function parsePlutoMap(input: string): {
   graph: Graph;
@@ -9,7 +9,6 @@ export function parsePlutoMap(input: string): {
   const rows = inputToRows(input);
   const graph: Graph = {};
   const portals: Record<string, string[]> = {};
-  const DISTANCE = 1;
   let start: string | undefined = undefined;
   let end: string | undefined = undefined;
 
@@ -17,7 +16,7 @@ export function parsePlutoMap(input: string): {
     for (let x = 0; x < rows[y].length; x++) {
       if (rows[y][x] === ".") {
         const nodeId = getNodeId(x, y);
-        const neighbors: Record<string, number> = {};
+        const neighbors = new Set<string>();
 
         [
           [y - 1, x],
@@ -28,7 +27,7 @@ export function parsePlutoMap(input: string): {
           if (rows[neighborY] && rows[neighborY][neighborX]) {
             if (rows[neighborY][neighborX] === ".") {
               const neighborNodeId = getNodeId(neighborX, neighborY);
-              neighbors[neighborNodeId] = DISTANCE;
+              neighbors.add(neighborNodeId);
             } else if (rows[neighborY][neighborX].match(/[A-Z]/)) {
               const portalId = getPortalId(rows, x, y, neighborX, neighborY);
 
@@ -65,8 +64,8 @@ export function parsePlutoMap(input: string): {
       throw new Error(`Invalid portal ${portalId} with contents ${nodes}`);
     }
 
-    graph[nodes[0]][nodes[1]] = DISTANCE;
-    graph[nodes[1]][nodes[0]] = DISTANCE;
+    graph[nodes[0]].add(nodes[1]);
+    graph[nodes[1]].add(nodes[0]);
   });
 
   return { graph, start, end };

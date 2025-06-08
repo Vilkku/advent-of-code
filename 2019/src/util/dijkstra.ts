@@ -1,6 +1,9 @@
-export type Graph = Record<string, Record<string, number>>;
+export type WeightedGraph = Record<string, Record<string, number>>;
 
-export function dijkstra(graph: Graph, start: string): Record<string, number> {
+export function dijkstra(
+  graph: WeightedGraph,
+  start: string,
+): Record<string, number> {
   const distances: Record<string, number> = {};
   const visited = new Set();
   const nodes = Object.keys(graph);

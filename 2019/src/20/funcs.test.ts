@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { dijkstra } from "../util/dijkstra.ts";
 import { parsePlutoMap } from "./funcs.ts";
+import { bfs } from "../util/bfs.ts";
 
 const example1 = `         A
          A
@@ -22,11 +22,11 @@ FG..#########.....#
              Z
              Z`;
 
-test("parsePlutoMap + dijkstra", () => {
+test("parsePlutoMap + bfs", () => {
   const plutoMap = parsePlutoMap(example1);
 
   expect(plutoMap.start).toBe("9,2");
   expect(plutoMap.end).toBe("13,16");
 
-  expect(dijkstra(plutoMap.graph, plutoMap.start)[plutoMap.end]).toBe(23);
+  expect(bfs(plutoMap.graph, plutoMap.start)[plutoMap.end]).toBe(23);
 });
