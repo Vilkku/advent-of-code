@@ -9,6 +9,9 @@ const initialMemory = inputToIntcodeComputerMemory(
 printAnswer(
   "Part 1",
   () => {
+    // Jump if one of these is true:
+    // - C is hole and D is ground
+    // - A is hole
     const program: Program = [
       "OR D J",
       "NOT C T",
