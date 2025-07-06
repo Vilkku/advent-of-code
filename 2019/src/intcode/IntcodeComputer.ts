@@ -10,7 +10,7 @@ export class IntcodeComputer {
   memory: number[];
   pointer: number = 0;
   relativeBase: number = 0;
-  private inputQueue: number[] = [];
+  readonly inputQueue: number[] = [];
   outputs: number[] = [];
   debug = false;
 
