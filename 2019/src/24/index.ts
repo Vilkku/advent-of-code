@@ -2,6 +2,7 @@ import { getInput } from "../util/input.ts";
 import { printAnswer } from "../util/benchmark.ts";
 import {
   calculateBiodiversityRating,
+  getBugsAfterNIterations,
   getNextRepeatingState,
   parseGrid,
 } from "./funcs.ts";
@@ -18,3 +19,8 @@ printAnswer(
   },
   18859569,
 );
+
+printAnswer("Part 2", () => {
+  const initialState = parseGrid(input);
+  return getBugsAfterNIterations(initialState, 200);
+});

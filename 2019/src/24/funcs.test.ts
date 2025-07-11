@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
   calculateBiodiversityRating,
+  getBugsAfterNIterations,
   getNextRepeatingState,
   getNextState,
   parseGrid,
@@ -70,4 +71,14 @@ test("getNextRepeatingState", () => {
   expect(serializeGrid(getNextRepeatingState(initialState))).toBe(
     serializeGrid(firstRepeatingState),
   );
+});
+
+test("getBugsAfterNIterations", () => {
+  const initialState = parseGrid(`....#
+#..#.
+#..##
+..#..
+#....`);
+
+  expect(getBugsAfterNIterations(initialState, 10)).toBe(99);
 });
