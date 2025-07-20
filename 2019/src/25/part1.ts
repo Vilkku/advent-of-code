@@ -106,41 +106,43 @@ runButton.addEventListener("click", async () => {
           });
           sectionEl.appendChild(descriptionEl);
 
-          const doorsContainerEl = createElement(
-            "div",
-            {
-              className: "output-list output-doors",
-            },
-            [
-              createElement("h3", { textContent: "Doors" }),
-              createElement(
-                "ul",
-                {},
-                output.doors.map((door) => {
-                  const linkedRoomName = roomMap[output.title]?.[door];
-                  const linkedRoomIsUnexplored = linkedRoomName
-                    ? roomContainsUnexploredRooms(
-                        [output.title],
-                        linkedRoomName,
-                      )
-                    : true;
+          if (isLastRoom) {
+            const doorsContainerEl = createElement(
+              "div",
+              {
+                className: "output-list output-doors",
+              },
+              [
+                createElement("h3", { textContent: "Doors" }),
+                createElement(
+                  "ul",
+                  {},
+                  output.doors.map((door) => {
+                    const linkedRoomName = roomMap[output.title]?.[door];
+                    const linkedRoomIsUnexplored = linkedRoomName
+                      ? roomContainsUnexploredRooms(
+                          [output.title],
+                          linkedRoomName,
+                        )
+                      : true;
 
-                  const id = `${output.title}-${door}`;
+                    const id = `${output.title}-${door}`;
 
-                  return createElement("li", {}, [
-                    createElement("button", {
-                      textContent: `${door} (${linkedRoomName ? `${linkedRoomName} - ${linkedRoomIsUnexplored ? "contains unvisited rooms" : "fully explored"}` : "unexplored"})`,
-                      disabled: !isLastRoom,
-                      "data-id": id,
-                      "data-direction": door,
-                    }),
-                  ]);
-                }),
-              ),
-            ],
-          );
+                    return createElement("li", {}, [
+                      createElement("button", {
+                        textContent: `${door} (${linkedRoomName ? `${linkedRoomName} - ${linkedRoomIsUnexplored ? "contains unvisited rooms" : "fully explored"}` : "unexplored"})`,
+                        disabled: !isLastRoom,
+                        "data-id": id,
+                        "data-direction": door,
+                      }),
+                    ]);
+                  }),
+                ),
+              ],
+            );
 
-          sectionEl.appendChild(doorsContainerEl);
+            sectionEl.appendChild(doorsContainerEl);
+          }
 
           if (output.items.length > 0) {
             const itemsContainerEl = document.createElement("div");
