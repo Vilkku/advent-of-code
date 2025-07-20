@@ -92,56 +92,55 @@ runButton.addEventListener("click", async () => {
       }
 
       outputs.forEach((output, index) => {
-        const sectionEl = document.createElement("div");
+        const sectionEl = createElement("div");
 
         if (output.type === "room") {
           const isLastRoom = lastRoomIndex === index;
 
-          const titleEl = document.createElement("h2");
-          titleEl.textContent = output.title;
+          const titleEl = createElement("h2", { textContent: output.title });
           sectionEl.appendChild(titleEl);
 
-          const descriptionEl = document.createElement("p");
-          descriptionEl.classList.add("output-description");
-          descriptionEl.textContent = output.description;
+          const descriptionEl = createElement("p", {
+            className: "output-description",
+            textContent: output.description,
+          });
           sectionEl.appendChild(descriptionEl);
 
-          if (output.doors.length > 0) {
-            const doorsContainerEl = document.createElement("div");
-            doorsContainerEl.classList.add("output-list");
-            doorsContainerEl.classList.add("output-doors");
+          const doorsContainerEl = createElement(
+            "div",
+            {
+              className: "output-list output-doors",
+            },
+            [
+              createElement("h3", { textContent: "Doors" }),
+              createElement(
+                "ul",
+                {},
+                output.doors.map((door) => {
+                  const linkedRoomName = roomMap[output.title]?.[door];
+                  const linkedRoomIsUnexplored = linkedRoomName
+                    ? roomContainsUnexploredRooms(
+                        [output.title],
+                        linkedRoomName,
+                      )
+                    : true;
 
-            const doorsHeaderEl = document.createElement("h3");
-            doorsHeaderEl.textContent = "Doors";
+                  const id = `${output.title}-${door}`;
 
-            doorsContainerEl.appendChild(doorsHeaderEl);
+                  return createElement("li", {}, [
+                    createElement("button", {
+                      textContent: `${door} (${linkedRoomName ? `${linkedRoomName} - ${linkedRoomIsUnexplored ? "contains unvisited rooms" : "fully explored"}` : "unexplored"})`,
+                      disabled: !isLastRoom,
+                      "data-id": id,
+                      "data-direction": door,
+                    }),
+                  ]);
+                }),
+              ),
+            ],
+          );
 
-            const doorsListEl = document.createElement("ul");
-
-            output.doors.forEach((door) => {
-              const doorEl = document.createElement("li");
-
-              const doorButton = document.createElement("button");
-
-              const linkedRoomName = roomMap[output.title]?.[door];
-              const linkedRoomIsUnexplored = linkedRoomName
-                ? roomContainsUnexploredRooms([output.title], linkedRoomName)
-                : true;
-
-              doorButton.textContent = `${door} (${linkedRoomName ? `${linkedRoomName} - ${linkedRoomIsUnexplored ? "contains unvisited rooms" : "fully explored"}` : "unexplored"})`;
-              doorButton.disabled = !isLastRoom;
-
-              const id = `${output.title}-${door}`;
-              doorButton.setAttribute("data-id", id);
-              doorButton.setAttribute("data-direction", door);
-
-              doorEl.appendChild(doorButton);
-              doorsListEl.appendChild(doorEl);
-            });
-
-            doorsContainerEl.appendChild(doorsListEl);
-            sectionEl.appendChild(doorsContainerEl);
-          }
+          sectionEl.appendChild(doorsContainerEl);
 
           if (output.items.length > 0) {
             const itemsContainerEl = document.createElement("div");
@@ -248,4 +247,38 @@ function getOppositeDirection(dir: string): string {
     default:
       throw new Error(`Unknown direction ${dir}`);
   }
+}
+
+function createElement<T extends keyof HTMLElementTagNameMap>(
+  tagName: T,
+  props: Record<string, string | boolean> = {},
+  children: HTMLElement[] = [],
+): HTMLElementTagNameMap[T] {
+  const element = document.createElement(tagName);
+
+  Object.entries(props).forEach(([name, value]) => {
+    if (typeof value === "string") {
+      switch (name) {
+        case "textContent":
+          element.textContent = value;
+          break;
+        case "className":
+          element.classList.add(...value.split(" "));
+          break;
+        default:
+          element.setAttribute(name, value);
+          break;
+      }
+    } else {
+      if (value) {
+        element.setAttribute(name, "true");
+      }
+    }
+  });
+
+  children.forEach((child) => {
+    element.appendChild(child);
+  });
+
+  return element;
 }
