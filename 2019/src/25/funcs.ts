@@ -108,7 +108,6 @@ export async function run(
   let output: number[] = [];
 
   while (computerStatus.status !== "done") {
-    console.log(computerStatus.status);
     switch (computerStatus.status) {
       case "output":
         output.push(computerStatus.output);
@@ -129,8 +128,6 @@ export async function run(
           parseOutput(asciiToString(output)),
           parseInventory(asciiToString(invOutput)),
         );
-
-        console.log("nextCommand", nextCommand);
 
         const nextCommandAscii = commandToAscii(nextCommand);
         nextCommandAscii.forEach((char) => computer.enqueueInput(char));

@@ -197,8 +197,6 @@ runButton.addEventListener("click", async () => {
         inventoryContainer.appendChild(itemEl);
       });
 
-      console.log(roomMap);
-
       return new Promise((resolve) => {
         outputContainer
           .querySelectorAll(".output-doors button")
