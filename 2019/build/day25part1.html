@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Day 25 Part 1</title>
+  <style>
+      body {
+          font-family: sans-serif;
+      }
+
+      section {
+          text-align: center;
+          margin-bottom: 2rem;
+      }
+
+      .container {
+          margin: 0 auto;
+          width: 1260px;
+      }
+
+      #output {
+          position: relative;
+          border: 1px solid black;
+          min-width: 1260px;
+          min-height: 720px;
+      }
+
+      #output > div {
+          margin-bottom: 16px;
+      }
+
+      #output h2, h3, p, ul {
+          margin: 8px 0;
+      }
+
+      .output-error {
+          color: red;
+      }
+
+      .output-info {
+          color: blue;
+      }
+
+      #output ul, li {
+          padding: 0;
+          list-style: none outside none;
+      }
+
+      .output-doors .visited {
+          font-style: italic;
+      }
+
+      #program {
+          width: 50%;
+          height: 100px;
+      }
+  </style>
+<script type="module" crossorigin src="./day25part1-thng1s5k.js"></script></head>
+<body>
+<div class="container">
+  <section>
+    <h1>Day 25 Part 1</h1>
+  </section>
+  <section id="output">
+  </section>
+  <section id="inventory">
+    <h2>Inventory</h2>
+    <ul id="items"></ul>
+  </section>
+  <section>
+    <label for="program">Program</label>
+    <div><textarea id="program"></textarea></div>
+    <button id="run">Run</button>
+  </section>
+</div>
+
+</body>
+</html>
