@@ -468,7 +468,7 @@ function asciiToString(ascii) {
 }
 function parseOutput(output) {
   console.log(output);
-  return output.trim().split(/\s*Command\?\s*/).map((s) => s.trim()).filter((s) => s !== "").map((section) => {
+  return output.trim().split(/\n\n\n\n/).map((s) => s.trim()).filter((s) => s !== "").flatMap((section) => {
     const titleDescriptionMatches = section.match(/== ([\w .,?!';\-:]+) ==\n([\w .,?!';\-:]+)/m);
     if (!titleDescriptionMatches) {
       return {
@@ -476,11 +476,11 @@ function parseOutput(output) {
         description: section
       };
     }
-    const weightCheckMatches = section.match(/A loud, robotic voice says/m);
+    const weightCheckMatches = section.match(/(A loud, robotic voice says.*)$/m);
     if (weightCheckMatches) {
       return {
         type: "error",
-        description: section
+        description: weightCheckMatches[1]
       };
     }
     const doorsMatches = section.match(/^Doors here lead:((?:\n- [\w .,?!';\-]+)+)/m);
@@ -530,6 +530,7 @@ async function run(initialMemory, {
         break;
     }
   }
+  await onInput(parseOutput(asciiToString(output)), parseInventory(asciiToString([])));
   throw new Error(`Done! ${asciiToString(output)}`);
 }
 
@@ -634,7 +635,7 @@ runButton.addEventListener("click", async () => {
               const itemEl = document.createElement("li");
               const itemButton = document.createElement("button");
               itemButton.textContent = `${item}${isDangerous ? " (dangerous!)" : ""}`;
-              itemButton.disabled = isDangerous || !isLastRoom || inventory.includes(item);
+              itemButton.disabled = !isLastRoom || inventory.includes(item);
               itemEl.appendChild(itemButton);
               itemsListEl.appendChild(itemEl);
             });

@@ -163,8 +163,7 @@ runButton.addEventListener("click", async () => {
 
               const itemButton = document.createElement("button");
               itemButton.textContent = `${item}${isDangerous ? " (dangerous!)" : ""}`;
-              itemButton.disabled =
-                isDangerous || !isLastRoom || inventory.includes(item);
+              itemButton.disabled = !isLastRoom || inventory.includes(item);
 
               itemEl.appendChild(itemButton);
               itemsListEl.appendChild(itemEl);

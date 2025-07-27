@@ -34,10 +34,10 @@ function parseOutput(output: string): Output[] {
 
   return output
     .trim()
-    .split(/\s*Command\?\s*/)
+    .split(/\n\n\n\n/)
     .map((s) => s.trim())
     .filter((s) => s !== "")
-    .map((section) => {
+    .flatMap((section) => {
       const titleDescriptionMatches = section.match(
         /== ([\w .,?!';\-:]+) ==\n([\w .,?!';\-:]+)/m,
       );
@@ -49,12 +49,14 @@ function parseOutput(output: string): Output[] {
         };
       }
 
-      const weightCheckMatches = section.match(/A loud, robotic voice says/m);
+      const weightCheckMatches = section.match(
+        /(A loud, robotic voice says.*)$/m,
+      );
 
       if (weightCheckMatches) {
         return {
           type: "error",
-          description: section,
+          description: weightCheckMatches![1],
         };
       }
 
@@ -135,6 +137,11 @@ export async function run(
         break;
     }
   }
+
+  await onInput(
+    parseOutput(asciiToString(output)),
+    parseInventory(asciiToString([])),
+  );
 
   throw new Error(`Done! ${asciiToString(output)}`);
 }
