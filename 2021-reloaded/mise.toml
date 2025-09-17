@@ -1,3 +1,2 @@
 [tools]
 racket = "latest"
-"ubi:adwinying/php" = "8.4"
