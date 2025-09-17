@@ -8,7 +8,3 @@
                      (for/list ([line (in-lines)])
                        line))))
   lines)
-
-(define (to-int s)
-  (let ((n (string->number (string-trim s))))
-    (if n n 0)))
