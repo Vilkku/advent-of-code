@@ -1,15 +1,6 @@
 #lang racket
 
-(define (read-input)
-  (define lines (with-input-from-file "input.txt"
-                   (lambda ()
-                     (for/list ([line (in-lines)])
-                       line))))
-  lines)
-
-(define (to-int s)
-  (let ((n (string->number (string-trim s))))
-    (if n n 0)))
+(require "../util.rkt")
 
 (define (part1 input-rows)
   (define increases 0)
@@ -31,7 +22,7 @@
     (set! prev curr))
   increases)
 
-(define input-rows (read-input))
+(define input-rows (read-input "01/input.txt"))
 
 (define part1-answer (part1 input-rows))
 (printf "Part 1: ~a\n" part1-answer)
