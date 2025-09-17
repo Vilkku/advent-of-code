@@ -1,6 +1,6 @@
 #lang racket
 
-(require "../util.rkt")
+(require "../util.rkt" rackunit)
 
 (define (part1 input-rows)
   (define increases 0)
@@ -26,10 +26,8 @@
 
 (define part1-answer (part1 input-rows))
 (printf "Part 1: ~a\n" part1-answer)
-(unless (= part1-answer 1400)
-  (error "Part 1 answer mismatch" part1-answer))
+(check-equal? part2-answer 1400)
 
 (define part2-answer (part2 input-rows))
 (printf "Part 2: ~a\n" part2-answer)
-(unless (= part2-answer 1429)
-  (error "Part 2 answer mismatch" part2-answer))
+(check-equal? part2-answer 1429)
