@@ -62,10 +62,9 @@ defmodule Day9 do
 
     defp get_connected_points(values, {point, {row, col}}, visited) do
       if MapSet.member?(visited, {row, col}) or point >= 9 do
-        {[], visited}
+        {0, visited}
       else
         visited = MapSet.put(visited, {row, col})
-
         get_point = Day9.make_get_point(values)
 
         neighbors = [
@@ -80,13 +79,13 @@ defmodule Day9 do
           |> Enum.map(fn {r, c} -> {get_point.(r, c), {r, c}} end)
           |> Enum.filter(fn {p, {_r, _c}} -> p > point and p < 9 end)
 
-        {collected, visited} =
-          Enum.reduce(valid_neighbors, {[], visited}, fn neighbor, {acc, vis} ->
-            {found, vis_after} = get_connected_points(values, neighbor, vis)
-            {acc ++ found, vis_after}
+        {count_acc, visited} =
+          Enum.reduce(valid_neighbors, {0, visited}, fn neighbor, {acc, vis} ->
+            {found_count, vis_after} = get_connected_points(values, neighbor, vis)
+            {acc + found_count, vis_after}
           end)
 
-        {[{point, {row, col}} | collected], visited}
+        {1 + count_acc, visited}
       end
     end
 
@@ -96,9 +95,7 @@ defmodule Day9 do
       values
       |> Day9.get_low_points()
       |> Enum.map(fn p -> get_connected_points(values, p) end)
-      |> Enum.map(fn {collected, _visited} ->
-        length(collected)
-      end)
+      |> Enum.map(fn {count, _visited} -> count end)
       |> Enum.sort(:desc)
       |> Enum.take(3)
       |> Enum.reduce(1, fn x, acc -> x * acc end)
