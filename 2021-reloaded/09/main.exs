@@ -1,0 +1,115 @@
+import ExUnit.Assertions
+
+input = File.read!("input.txt")
+
+defmodule Day9 do
+  def parse_input(input) do
+    input
+    |> String.trim()
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn row ->
+      String.split(row, "", trim: true)
+      |> Enum.map(&String.to_integer/1)
+    end)
+  end
+
+  def make_get_point(values) do
+    row_count = length(values)
+    col_count = length(Enum.at(values, 0, []))
+
+    fn r, c ->
+      cond do
+        r < 0 or c < 0 -> 10
+        r >= row_count or c >= col_count -> 10
+        true -> Enum.at(Enum.at(values, r), c)
+      end
+    end
+  end
+
+  def get_low_points(values) do
+    get_point = Day9.make_get_point(values)
+
+    values
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {row, rowIndex} ->
+      row
+      |> Enum.with_index()
+      |> Enum.filter(fn {point, pointIndex} ->
+        get_point.(rowIndex - 1, pointIndex) > point &&
+          get_point.(rowIndex + 1, pointIndex) > point &&
+          get_point.(rowIndex, pointIndex - 1) > point &&
+          get_point.(rowIndex, pointIndex + 1) > point
+      end)
+      |> Enum.map(fn {point, pointIndex} -> {point, {pointIndex, rowIndex}} end)
+    end)
+  end
+
+  defmodule Part1 do
+    def solve(input) do
+      Day9.parse_input(input)
+      |> Day9.get_low_points()
+      |> Enum.map(fn {point, _} ->
+        point + 1
+      end)
+      |> Enum.sum()
+    end
+  end
+
+  defmodule Part2 do
+    def get_connected_points(values, {point, {col, row}}) do
+      get_connected_points(values, {point, {col, row}}, MapSet.new())
+    end
+
+    defp get_connected_points(values, {point, {col, row}}, visited) do
+      if MapSet.member?(visited, {col, row}) or point >= 9 do
+        {[], visited}
+      else
+        visited = MapSet.put(visited, {col, row})
+
+        get_point = Day9.make_get_point(values)
+
+        neighbors = [
+          {col - 1, row},
+          {col + 1, row},
+          {col, row - 1},
+          {col, row + 1}
+        ]
+
+        valid_neighbors =
+          neighbors
+          |> Enum.map(fn {c, r} -> {get_point.(r, c), {c, r}} end)
+          |> Enum.filter(fn {p, {_c, _r}} -> p > point and p < 9 end)
+
+        {collected, visited} =
+          Enum.reduce(valid_neighbors, {[], visited}, fn neighbor, {acc, vis} ->
+            {found, vis_after} = get_connected_points(values, neighbor, vis)
+            {acc ++ found, vis_after}
+          end)
+
+        {[{point, {col, row}} | collected], visited}
+      end
+    end
+
+    def solve(input) do
+      values = Day9.parse_input(input)
+
+      values
+      |> Day9.get_low_points()
+      |> Enum.map(fn p -> get_connected_points(values, p) end)
+      |> Enum.map(fn {collected, _visited} ->
+        length(collected)
+      end)
+      |> Enum.sort(:desc)
+      |> Enum.take(3)
+      |> Enum.reduce(1, fn x, acc -> x * acc end)
+    end
+  end
+end
+
+part1Answer = Day9.Part1.solve(input)
+IO.puts("Part 1: #{part1Answer}")
+assert part1Answer == 594
+
+part2Answer = Day9.Part2.solve(input)
+IO.puts("Part 1: #{part2Answer}")
+assert part2Answer == 858_494
