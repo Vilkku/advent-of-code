@@ -56,23 +56,23 @@ defmodule Day9 do
   end
 
   defmodule Part2 do
-    def get_connected_points(values, {point, {col, row}}) do
-      get_connected_points(values, {point, {col, row}}, MapSet.new())
+    def get_connected_points(values, {point, {row, col}}) do
+      get_connected_points(values, {point, {row, col}}, MapSet.new())
     end
 
-    defp get_connected_points(values, {point, {col, row}}, visited) do
-      if MapSet.member?(visited, {col, row}) or point >= 9 do
+    defp get_connected_points(values, {point, {row, col}}, visited) do
+      if MapSet.member?(visited, {row, col}) or point >= 9 do
         {[], visited}
       else
-        visited = MapSet.put(visited, {col, row})
+        visited = MapSet.put(visited, {row, col})
 
         get_point = Day9.make_get_point(values)
 
         neighbors = [
-          {col - 1, row},
-          {col + 1, row},
-          {col, row - 1},
-          {col, row + 1}
+          {row - 1, col},
+          {row + 1, col},
+          {row, col - 1},
+          {row, col + 1}
         ]
 
         valid_neighbors =
@@ -86,7 +86,7 @@ defmodule Day9 do
             {acc ++ found, vis_after}
           end)
 
-        {[{point, {col, row}} | collected], visited}
+        {[{point, {row, col}} | collected], visited}
       end
     end
 
