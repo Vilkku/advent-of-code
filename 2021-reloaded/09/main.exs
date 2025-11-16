@@ -17,11 +17,11 @@ defmodule Day9 do
     row_count = length(values)
     col_count = length(Enum.at(values, 0, []))
 
-    fn r, c ->
+    fn row, col ->
       cond do
-        r < 0 or c < 0 -> 10
-        r >= row_count or c >= col_count -> 10
-        true -> Enum.at(Enum.at(values, r), c)
+        row < 0 or col < 0 -> 10
+        row >= row_count or col >= col_count -> 10
+        true -> Enum.at(Enum.at(values, row), col)
       end
     end
   end
@@ -40,7 +40,7 @@ defmodule Day9 do
           get_point.(rowIndex, pointIndex - 1) > point &&
           get_point.(rowIndex, pointIndex + 1) > point
       end)
-      |> Enum.map(fn {point, pointIndex} -> {point, {pointIndex, rowIndex}} end)
+      |> Enum.map(fn {point, pointIndex} -> {point, {rowIndex, pointIndex}} end)
     end)
   end
 
@@ -77,8 +77,8 @@ defmodule Day9 do
 
         valid_neighbors =
           neighbors
-          |> Enum.map(fn {c, r} -> {get_point.(r, c), {c, r}} end)
-          |> Enum.filter(fn {p, {_c, _r}} -> p > point and p < 9 end)
+          |> Enum.map(fn {r, c} -> {get_point.(r, c), {r, c}} end)
+          |> Enum.filter(fn {p, {_r, _c}} -> p > point and p < 9 end)
 
         {collected, visited} =
           Enum.reduce(valid_neighbors, {[], visited}, fn neighbor, {acc, vis} ->
@@ -111,5 +111,5 @@ IO.puts("Part 1: #{part1Answer}")
 assert part1Answer == 594
 
 part2Answer = Day9.Part2.solve(input)
-IO.puts("Part 1: #{part2Answer}")
+IO.puts("Part 2: #{part2Answer}")
 assert part2Answer == 858_494
