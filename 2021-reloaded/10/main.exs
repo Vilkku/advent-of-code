@@ -32,27 +32,16 @@ defmodule Day10 do
   defmodule Part1 do
     def solve(input) do
       Day10.parse_input(input)
-      |> Enum.map(fn row ->
-        row
-        |> Day10.replace_until_stable(["()", "[]", "{}", "<>"], "")
-      end)
-      |> Enum.filter(fn row ->
-        row
-        |> String.contains?([")", "]", "}", ">"])
-      end)
+      |> Enum.map(&Day10.replace_until_stable(&1, ["()", "[]", "{}", "<>"], ""))
+      |> Enum.filter(&String.contains?(&1, [")", "]", "}", ">"]))
       |> Enum.map(fn row ->
         row
         |> String.graphemes()
-        |> Enum.filter(fn char -> char == ")" || char == "]" || char == "}" || char == ">" end)
-        |> hd()
+        |> Enum.find(&(&1 in [")", "]", "}", ">"]))
       end)
       |> Enum.map(fn char ->
-        case char do
-          ")" -> 3
-          "]" -> 57
-          "}" -> 1197
-          ">" -> 25137
-        end
+        scores = %{")" => 3, "]" => 57, "}" => 1197, ">" => 25137}
+        Map.get(scores, char)
       end)
       |> Enum.sum()
     end
