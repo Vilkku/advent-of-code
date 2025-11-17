@@ -53,24 +53,22 @@ defmodule Day10 do
       |> Enum.map(&Day10.replace_until_stable(&1, ["()", "[]", "{}", "<>"], ""))
       |> Enum.filter(&(!String.contains?(&1, [")", "]", "}", ">"])))
       |> Enum.map(&String.reverse/1)
-      |> Enum.map(fn string ->
+      |> Enum.map(fn original_string ->
         replacements = %{"(" => ")", "[" => "]", "{" => "}", "<" => ">"}
 
-        Enum.reduce(replacements, string, fn {from, to}, acc ->
+        Enum.reduce(replacements, original_string, fn {from, to}, acc ->
           String.replace(acc, from, to)
         end)
       end)
-      |> Enum.map(fn string ->
+      |> Enum.map(fn completion_string ->
         scores = %{")" => 1, "]" => 2, "}" => 3, ">" => 4}
 
-        Enum.reduce(String.graphemes(string), 0, fn char, acc ->
+        Enum.reduce(String.graphemes(completion_string), 0, fn char, acc ->
           acc * 5 + Map.get(scores, char)
         end)
       end)
       |> Enum.sort()
-      |> then(fn scores ->
-        Enum.at(scores, div(length(scores), 2))
-      end)
+      |> then(&Enum.at(&1, div(length(&1), 2)))
     end
   end
 end
