@@ -46,8 +46,39 @@ defmodule Day10 do
       |> Enum.sum()
     end
   end
+
+  defmodule Part2 do
+    def solve(input) do
+      Day10.parse_input(input)
+      |> Enum.map(&Day10.replace_until_stable(&1, ["()", "[]", "{}", "<>"], ""))
+      |> Enum.filter(&(!String.contains?(&1, [")", "]", "}", ">"])))
+      |> Enum.map(&String.reverse/1)
+      |> Enum.map(fn string ->
+        replacements = %{"(" => ")", "[" => "]", "{" => "}", "<" => ">"}
+
+        Enum.reduce(replacements, string, fn {from, to}, acc ->
+          String.replace(acc, from, to)
+        end)
+      end)
+      |> Enum.map(fn string ->
+        scores = %{")" => 1, "]" => 2, "}" => 3, ">" => 4}
+
+        Enum.reduce(String.graphemes(string), 0, fn char, acc ->
+          acc * 5 + Map.get(scores, char)
+        end)
+      end)
+      |> Enum.sort()
+      |> then(fn scores ->
+        Enum.at(scores, div(length(scores), 2))
+      end)
+    end
+  end
 end
 
 part1Answer = Day10.Part1.solve(input)
 IO.puts("Part 1: #{part1Answer}")
 assert part1Answer == 168_417
+
+part2Answer = Day10.Part2.solve(input)
+IO.puts("Part 2: #{part2Answer}")
+assert part2Answer == 2_802_519_786
