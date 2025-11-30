@@ -99,8 +99,28 @@ defmodule Day11 do
       end
     end
   end
+
+  defmodule Part2 do
+    def solve(input) do
+      values = Day11.parse_input(input)
+      {map, rows, cols} = Day11.to_map(values)
+
+      Enum.reduce_while(1..999, {map, 0}, fn current_step, {m, total_flashes} ->
+        {m_after_step, flashes} = Day11.Part1.step(m, rows, cols)
+
+        if Enum.all?(m_after_step, fn {_k, v} -> v == 0 end) do
+          {:halt, current_step}
+        else
+          {:cont, {m_after_step, total_flashes + flashes}}
+        end
+      end)
+    end
+  end
 end
 
 part1Answer = Day11.Part1.solve(input, 100)
 IO.puts("Part 1: #{part1Answer}")
 assert part1Answer == 1679
+
+part2Answer = Day11.Part2.solve(input)
+IO.puts("Part 2: #{part2Answer}")
