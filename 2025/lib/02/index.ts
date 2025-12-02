@@ -34,6 +34,8 @@ printAnswer(
     const idRanges = parseIdRanges(input);
     const invalidIds: number[] = [];
 
+    // Could be done with this regex ^(\d+)\1$
+
     idRanges.forEach(({ start, end }) => {
       for (let i = start; i <= end; i++) {
         const iStr = i.toString();
@@ -62,6 +64,8 @@ printAnswer(
   () => {
     const idRanges = parseIdRanges(input);
     const invalidIds: number[] = [];
+
+    // Could be done with this regex ^(\d+)\1+$
 
     idRanges.forEach(({ start, end }) => {
       for (let i = start; i <= end; i++) {
