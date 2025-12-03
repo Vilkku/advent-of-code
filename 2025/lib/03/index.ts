@@ -22,21 +22,11 @@ printAnswer(
     const batteries = parseBatteries(input);
 
     return batteries.reduce((output, bank) => {
-      const sortedBank = bank.toSorted((a, b) => b - a);
+      const first = Math.max(...bank.slice(0, bank.length - 1));
+      const firstBatteryIndex = bank.indexOf(first);
+      const second = Math.max(...bank.slice(firstBatteryIndex + 1));
 
-      let firstBatteryIndex = bank.indexOf(sortedBank[0]!);
-      if (firstBatteryIndex === bank.length - 1) {
-        firstBatteryIndex = bank.indexOf(sortedBank[1]!);
-      }
-
-      const sortedRestOfBank = bank
-        .slice(firstBatteryIndex + 1)
-        .sort((a, b) => b - a);
-
-      return (
-        output +
-        parseInt(`${bank[firstBatteryIndex]}${sortedRestOfBank[0]}`, 10)
-      );
+      return output + parseInt(`${first}${second}`, 10);
     }, 0);
   },
   17452,
@@ -57,9 +47,7 @@ printAnswer(
         const endIndex = bank.length - i + 1;
 
         const candidateBatteries = bank.slice(startIndex, endIndex);
-
-        const sortedCandidates = candidateBatteries.toSorted((a, b) => b - a);
-        const bestBattery = sortedCandidates[0]!;
+        const bestBattery = Math.max(...candidateBatteries);
 
         lastCandidateIndex =
           startIndex + candidateBatteries.indexOf(bestBattery);
