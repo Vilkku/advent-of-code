@@ -68,22 +68,18 @@ printAnswer(
 
         const prev = acc.pop();
 
-        if (!prev) {
-          throw new Error("Error getting last element of array");
-        }
-
         const [currStart, currEnd] = curr;
-        const [prevStart, prevEnd] = prev;
+        const [prevStart, prevEnd] = prev!;
 
         if (currEnd <= prevEnd) {
-          return [...acc, prev];
+          return [...acc, prev!];
         }
 
         if (currStart <= prevEnd) {
           return [...acc, [prevStart, currEnd]];
         }
 
-        return [...acc, prev, curr];
+        return [...acc, prev!, curr];
       },
       [],
     );
