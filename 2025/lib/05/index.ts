@@ -15,11 +15,6 @@ const exampleInput = `3-5
 32
 `;
 
-type Ingredient = {
-  id: number;
-  isFresh: boolean;
-};
-
 function parseIngredients(input: string): {
   freshRanges: [number, number][];
   freshIngredients: number[];
@@ -59,34 +54,41 @@ printAnswer(
   756,
 );
 
-printAnswer("Part 2", () => {
-  const { freshRanges } = parseIngredients(input);
-  const sortedRanges = [...freshRanges].sort((a, b) => a[0] - b[0]);
+printAnswer(
+  "Part 2",
+  () => {
+    const { freshRanges } = parseIngredients(input);
+    const sortedRanges = [...freshRanges].sort((a, b) => a[0] - b[0]);
 
-  const mergedRanges = sortedRanges.reduce<[number, number][]>((acc, curr) => {
-    if (acc.length === 0) {
-      return [curr];
-    }
+    const mergedRanges = sortedRanges.reduce<[number, number][]>(
+      (acc, curr) => {
+        if (acc.length === 0) {
+          return [curr];
+        }
 
-    const prev = acc.pop();
+        const prev = acc.pop();
 
-    if (!prev) {
-      throw new Error("Error getting last element of array");
-    }
+        if (!prev) {
+          throw new Error("Error getting last element of array");
+        }
 
-    const [currStart, currEnd] = curr;
-    const [prevStart, prevEnd] = prev;
+        const [currStart, currEnd] = curr;
+        const [prevStart, prevEnd] = prev;
 
-    if (currEnd <= prevEnd) {
-      return [...acc, prev];
-    }
+        if (currEnd <= prevEnd) {
+          return [...acc, prev];
+        }
 
-    if (currStart <= prevEnd) {
-      return [...acc, [prevStart, currEnd]];
-    }
+        if (currStart <= prevEnd) {
+          return [...acc, [prevStart, currEnd]];
+        }
 
-    return [...acc, prev, curr];
-  }, []);
+        return [...acc, prev, curr];
+      },
+      [],
+    );
 
-  return mergedRanges.reduce((sum, [start, end]) => sum + end - start + 1, 0);
-});
+    return mergedRanges.reduce((sum, [start, end]) => sum + end - start + 1, 0);
+  },
+  355555479253787,
+);
