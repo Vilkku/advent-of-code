@@ -52,43 +52,40 @@ printAnswer(
 printAnswer(
   "Part 2",
   () => {
-    const numbers: number[][] = [];
-    const operators: string[] = [];
-
-    const characters: string[][] = input
+    const rows: string[][] = input
       .trim()
       .split("\n")
       .map((row) => row.split(""));
+    const maxCols = Math.max(...rows.map((r) => r.length), 0);
 
-    let done = false;
-    let i = 0;
+    const numbers: number[][] = [];
+    const operators: string[] = [];
+
     let currentProblemNumbers: number[] = [];
-    while (!done) {
-      const chars = characters.reduce((acc, row) => {
-        const char = row[i] ?? "";
-        return [...acc, char];
-      }, []);
-      i++;
+    for (let i = 0; i < maxCols; i++) {
+      const colStr = rows.map((r) => r[i] ?? " ").join("");
 
-      const operator = chars.pop();
+      if (colStr.trim() === "") {
+        if (currentProblemNumbers.length > 0) {
+          numbers.push([...currentProblemNumbers]);
+          currentProblemNumbers = [];
+        }
 
-      if (operator === "*" || operator === "+") {
-        operators.push(operator);
+        continue;
       }
 
-      const number = parseInt(chars.join("").trim(), 10);
+      const operator = colStr[colStr.length - 1];
 
-      if (isNaN(number)) {
-        numbers.push([...currentProblemNumbers]);
-        currentProblemNumbers = [];
-      } else {
-        currentProblemNumbers.push(number);
+      if (operator !== " ") {
+        operators.push(operator!);
       }
 
-      if (characters.every((row) => row[i] === undefined)) {
-        numbers.push([...currentProblemNumbers]);
-        done = true;
-      }
+      const number = parseInt(colStr.slice(0, -1).trim(), 10);
+      currentProblemNumbers.push(number);
+    }
+
+    if (currentProblemNumbers.length > 0) {
+      numbers.push([...currentProblemNumbers]);
     }
 
     if (numbers.length !== operators.length) {
