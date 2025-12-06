@@ -109,13 +109,13 @@ printAnswer(
       const constructedNumbers: number[] = [];
 
       for (let i = 0; i < width; i++) {
-        const colValue = parseInt(
+        const numberFromColumn = parseInt(
           colNumbersStr
             .map((numberStr) => numberStr[i])
             .join("")
             .trim(),
         );
-        constructedNumbers.push(colValue);
+        constructedNumbers.push(numberFromColumn);
       }
 
       return constructedNumbers;
