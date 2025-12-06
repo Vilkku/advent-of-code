@@ -52,74 +52,44 @@ printAnswer(
 printAnswer(
   "Part 2",
   () => {
-    const numbersStr: string[][] = [];
+    const numbers: number[][] = [];
     const operators: string[] = [];
-    const columnWidths: number[] = [];
-    const rows = input.trim().split("\n");
 
-    rows.forEach((row, rowIndex) => {
-      if (rowIndex === rows.length - 1) {
-        const cols = row.match(/([\*\+])/g);
+    const characters: string[][] = input
+      .trim()
+      .split("\n")
+      .map((row) => row.split(""));
 
-        cols!.forEach((col, colIndex) => {
-          operators[colIndex] = col;
-        });
+    let done = false;
+    let i = 0;
+    let currentProblemNumbers: number[] = [];
+    while (!done) {
+      const chars = characters.reduce((acc, row) => {
+        const char = row[i] ?? "";
+        return [...acc, char];
+      }, []);
+      i++;
+
+      const operator = chars.pop();
+
+      if (operator === "*" || operator === "+") {
+        operators.push(operator);
+      }
+
+      const number = parseInt(chars.join("").trim(), 10);
+
+      if (isNaN(number)) {
+        numbers.push([...currentProblemNumbers]);
+        currentProblemNumbers = [];
       } else {
-        const cols = row.match(/([0-9]+)/g);
-
-        cols!.forEach((col, colIndex) => {
-          if (
-            columnWidths[colIndex] === undefined ||
-            columnWidths[colIndex] < col.length
-          ) {
-            columnWidths[colIndex] = col.length;
-          }
-        });
-      }
-    });
-
-    const columns = columnWidths.map((width, colIndex) => {
-      const start =
-        colIndex === 0
-          ? 0
-          : columnWidths
-              .slice(0, colIndex)
-              .reduce((prev, curr) => prev + curr + 1, 0);
-
-      return {
-        start,
-        end: start + width,
-      };
-    });
-
-    rows.forEach((row, rowIndex) => {
-      if (rowIndex !== rows.length - 1) {
-        columns.forEach((col, colIndex) => {
-          if (!numbersStr[colIndex]) {
-            numbersStr[colIndex] = [];
-          }
-
-          numbersStr[colIndex].push(row.substring(col.start, col.end));
-        });
-      }
-    });
-
-    const numbers = numbersStr.map((colNumbersStr) => {
-      const width = colNumbersStr[0]!.length;
-      const constructedNumbers: number[] = [];
-
-      for (let i = 0; i < width; i++) {
-        const numberFromColumn = parseInt(
-          colNumbersStr
-            .map((numberStr) => numberStr[i])
-            .join("")
-            .trim(),
-        );
-        constructedNumbers.push(numberFromColumn);
+        currentProblemNumbers.push(number);
       }
 
-      return constructedNumbers;
-    });
+      if (characters.every((row) => row[i] === undefined)) {
+        numbers.push([...currentProblemNumbers]);
+        done = true;
+      }
+    }
 
     if (numbers.length !== operators.length) {
       throw new Error("Length mismatch");
