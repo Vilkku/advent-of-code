@@ -49,18 +49,14 @@ function getDistance(a: Coordinate, b: Coordinate): number {
 }
 
 function parseDistances(input: string): Map<string, number> {
-  const coordinates = input.trim().split("\n");
+  const coordinates = input.trim().split("\n").map(parseCoordinate);
   const distances: Map<string, number> = new Map();
 
-  for (const key of coordinates) {
-    const coordinate = parseCoordinate(key);
-
-    for (const compareKey of coordinates) {
-      if (key === compareKey) {
+  for (const coordinate of coordinates) {
+    for (const compareCoordinate of coordinates) {
+      if (coordinate === compareCoordinate) {
         continue;
       }
-
-      const compareCoordinate = parseCoordinate(compareKey);
 
       const [a, b] = [coordinate, compareCoordinate].sort(
         (a, b) => a.x - b.x || a.y - b.y || a.z - b.z,
