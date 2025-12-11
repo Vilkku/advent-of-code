@@ -39,3 +39,26 @@ printAnswer(
   },
   4777824480,
 );
+
+printAnswer("Part 2", () => {
+  const points: [number, number][] = exampleInput
+    .trim()
+    .split("\n")
+    .map((row) => {
+      const [x, y] = row.split(",").map((n) => parseInt(n, 10));
+      return [x!, y!];
+    });
+
+  const squares: { corners: [number, number][]; area: number }[] = [];
+
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      squares.push({
+        corners: [points[i]!, points[j]!],
+        area: getArea(points[i]!, points[j]!),
+      });
+    }
+  }
+
+  return squares.toSorted((a, b) => b.area - a.area)[0]!.area;
+});
